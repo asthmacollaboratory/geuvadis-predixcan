@@ -3,4 +3,4 @@ Pipeline to train and analyze [PrediXcan](https://github.com/hakyim/PrediXcan) p
 
 Genotypes and normalized gene expression measures for 373 EUR samples and 89 YRI samples from GEUVADIS were downloaded from the [EBI website](https://www.ebi.ac.uk/arrayexpress/files/E-GEUV-1/analysis_results/).
 
-New prediction weights for each population were computed using [elastic net regularized](https://en.wikipedia.org/wiki/Elastic_net_regularization) linear regression with the [`glmnet`](https://cran.r-project.org/web/packages/glmnet/index.html) package in R.
+Per protocol from [Gamazon _et al._ (2015)](https://www.ncbi.nlm.nih.gov/pubmed/26258848), new prediction weights for each population were computed using [elastic net regularized](https://en.wikipedia.org/wiki/Elastic_net_regularization) linear regression with the [`glmnet`](https://cran.r-project.org/web/packages/glmnet/index.html) package in R.
