@@ -21,19 +21,6 @@ suppressMessages(library(data.table))
 suppressMessages(library(methods))
 suppressMessages(library(optparse))
 
-## input file paths
-#rnaseq.file = "~/gala_sage/rnaseq/geuvadis/rnaseq/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt"
-#sample.ids.file      = "~/gala_sage/rnaseq/geuvadis/genotypes/sample_ids/gevuadis.465.sample.ids.txt"
-#noneur.id.file            = "expressions.genes.yri.matrix.eqtl.txt"
-#
-## output file paths
-#eur.out.file  = "geuvadis.eur373.RPKM.invnorm.txt"
-#yri.out.file  = "geuvadis.yri89.RPKM.invnorm.txt"
-#teur.out.file = "geuvadis.eur373.RPKM.invnom.transposed.txt"
-#teur.out.file = "geuvadis.eur373.RPKM.invnom.transposed.txt"
-#eur.ids.file  = "geuvadis.eur373.ids.txt"
-#yri.ids.file  = "geuvadis.yri373.ids.txt"
-
 # parse command line variables
 option_list = list(
     make_option(
@@ -54,7 +41,7 @@ option_list = list(
         c("-ys", "--YRI-sampleIDs-file"),
         type    = "character",
         default = NULL,
-        help    = "PLINK-format sample IDs file (two columns, one ID per line, repeated in each column).",
+        help    = "PLINK-format sample IDs file (two headerless columns, one ID per line, repeated in each column).",
         metavar = "character"
     ),
     make_option(
@@ -103,17 +90,17 @@ option_list = list(
         c("-yi", "--YRI-IDs-out-file"),
         type    = "character",
         default = "geuvadis.yri89.ids.txt",
-        help    = "Output file for parsed EUR sample IDs [default = %default].",
+        help    = "Output file for parsed YRI sample IDs [default = %default].",
         metavar = "character"
     )
 )
 
 
- opt_parser = OptionParser(option_list = option_list)
- opt = parse_args(opt_parser, convert_hyphens_to_underscores = TRUE)
+opt_parser = OptionParser(option_list = option_list)
+opt = parse_args(opt_parser, convert_hyphens_to_underscores = TRUE)
 
- cat("Parsed options:\n\n")
- print(opt)
+cat("Parsed options:\n\n")
+print(opt)
 
 # input file paths
 rnaseq.file       = opt$rnaseq_data_file 
@@ -127,9 +114,8 @@ tyri.out.file     = file.path(opt$output_directory, opt$transposed_YRI_rnaseq_ou
 eur.ids.file      = file.path(opt$output_directory, opt$EUR_IDs_out_file) 
 yri.ids.file      = file.path(opt$output_directory, opt$YRI_IDs_out_file) 
 
-
 # load from file
-rnaseq.data     = fread(rnaseq.file)     # load normalized RPKMs for gEUVADIS
+rnaseq.data     = fread(rnaseq.file)             # load normalized RPKMs for gEUVADIS
 eur.sample.ids  = fread(eur.sampleid.file)[[1]]  # IDs for EUR, we want these as a *vector*
 yri.sample.ids  = fread(yri.sampleid.file)[[1]]  # same deal for YRI 
 
@@ -140,12 +126,13 @@ rnaseq.data = rnaseq.data[,-c(2:4)]
 colnames(rnaseq.data)[1] = "Gene"
 rnaseq.data$Gene = strtrim(rnaseq.data$Gene, 15)
 
-# rename gene ID to just "Gene"
-#colnames(noneur.ids)[1] = "Gene"
-
+### TODO:
+### melt rnaseq.data
+### dplyr filter on *.sample.ids
+### dcast to eur, yri
 # subset the RNA-Seq data
-yri = rnaseq.data[, colnames(rnaseq.data) %in% eur.sampleids, with = FALSE]
-eur = rnaseq.data[, colnames(rnaseq.data) %in% yri.sampleids, with = FALSE]
+eur = rnaseq.data[, colnames(rnaseq.data) %in% eur.sample.ids, with = FALSE]
+yri = rnaseq.data[, colnames(rnaseq.data) %in% yri.sample.ids, with = FALSE]
 
 # put "Gene" column in yri 
 eur$Gene = rnaseq.data$Gene
@@ -156,8 +143,8 @@ setorder(x=yri, Gene, na.last = TRUE)
 setorder(x=eur, Gene, na.last = TRUE)
 
 # reorder columns of yri, putting "Gene" first
-#eur = eur[,c(ncol(eur),1:(ncol(eur)-1)), with = F]
-yri = yri[,c(ncol(yri),1:(ncol(yri)-1)), with = F]
+eur = data.table(eur[,c(ncol(eur),1:(ncol(eur)-1)), with = F])
+yri = data.table(yri[,c(ncol(yri),1:(ncol(yri)-1)), with = F])
 
 # write subsetted data.tables to file
 fwrite(x = eur, file = eur.out.file, col.names = TRUE, quote = FALSE, sep = "\t")
@@ -181,5 +168,5 @@ fwrite(x = tyri, file = tyri.out.file, quote = FALSE)
 
 # also save separate lists of EUR, YRI sample IDs
 # this will come in handy when subsetting genotypes
-fwrite(x = eur.sampleids, file = eur.ids.file, col.names = FALSE, quote = FALSE, sep = "\t")
-fwrite(x = yri.sampleids, file = yri.ids.file, col.names = FALSE, quote = FALSE, sep = "\t")
+fwrite(x = data.table(eur.sample.ids), file = eur.ids.file, col.names = FALSE, quote = FALSE, sep = "\t")
+fwrite(x = data.table(yri.sample.ids), file = yri.ids.file, col.names = FALSE, quote = FALSE, sep = "\t")

@@ -21,11 +21,8 @@ thisdir="$(dirname $(readlink -f $0))"
 
 analysisdir="${thisdir}/../analysis"
 datadir="${analysisdir}/data"
-geuvadis_genodir="${datadir}/genotypes"
 geuvadis_rnaseqdir="${datadir}/rnaseq"
-vcfdir="${geuvadis_genodir}/vcf"
-plinkdir="${geuvadis_genodir}/plink"
-datafiles_dir="${thisdir}../../datafiles"
+datafiles_dir="${thisdir}/../../datafiles"
 
 
 # ==========================================================================================
@@ -49,20 +46,18 @@ R_parse_geu_expr="${thisdir}/parse_geuvadis_expressions.R"
 # ==========================================================================================
 # script file paths
 all_rnaseq_data_file="${geuvadis_rnaseqdir}/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt"
-eur_out_file="${geuvadis_rnaseqdir}/geuvadis.eur373.RPKM.invnorm.txt"
-yri_out_file="${geuvadis_rnaseqdir}/geuvadis.yri89.RPKM.invnorm.txt"
-teur_out_file="${geuvadis_rnaseqdir}/geuvadis.eur373.RPKM.invnom.transposed.txt"
-teur_out_file="${geuvadis_rnaseqdir}/geuvadis.eur373.RPKM.invnom.transposed.txt"
-eur_ids_out_file="${geuvadis_rnaseqdir}/geuvadis.eur373.ids.txt"
-yri_ids_out_file="${geuvadis_rnaseqdir}/geuvadis.yri373.ids.txt"
-mergelist="${geuvadis_genodir}/plink/geuvadis_mergelist_for_plink.txt"
-id_map_file="${geuvadis_genodir}/snp_ids/Phase1.Geuvadis_dbSnp137_idconvert.txt"
+eur_out_file="geuvadis.eur373.RPKM.invnorm.txt"
+yri_out_file="geuvadis.yri89.RPKM.invnorm.txt"
+teur_out_file="geuvadis.eur373.RPKM.invnorm.transposed.txt"
+tyri_out_file="geuvadis.yri89.RPKM.invnorm.transposed.txt"
+eur_ids_out_file="geuvadis.eur373.ids.txt"
+yri_ids_out_file="geuvadis.yri89.ids.txt"
 
 eur_ids_file="${datafiles_dir}/geuvadis.eur373.sampleids.txt"
 yri_ids_file="${datafiles_dir}/geuvadis.yri89.sampleids.txt"
 
 rnaseq_url="https://www.ebi.ac.uk/arrayexpress/files/E-GEUV-1/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"
-rnaseq_gzfile="${rnaseqdir}/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"
+rnaseq_gzfile="${geuvadis_rnaseqdir}/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"
 
 
 # ==========================================================================================
@@ -75,13 +70,13 @@ mkdir -p ${datadir}
 mkdir -p ${geuvadis_rnaseqdir}
 
 # download expression data
-wget ${rnaseq_url} -P ${rnaseqdir}
-gzcat ${rnaseq_gzfile} > ${all_rnaseq_data_file}
+wget ${rnaseq_url} -P ${geuvadis_rnaseqdir}
+gzip --stdout --decompress ${rnaseq_gzfile} > ${all_rnaseq_data_file}
 
 # everything required for parsing gene expression data is in one script
 $RSCRIPT $R_parse_geu_expr \
     --rnaseq-data-file ${all_rnaseq_data_file} \
-    --sample-ids-file ${sample_ids_file} \
+    --output-directory ${geuvadis_rnaseqdir} \
     --EUR-sampleIDs-file ${eur_ids_file} \
     --YRI-sampleIDs-file ${yri_ids_file} \
     --EUR-rnaseq-out-file ${eur_out_file} \
