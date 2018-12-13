@@ -269,26 +269,51 @@ for (i in 1:nsamples) {
 }
 
 # compute mean of means for each train/test scenario
-results.per.pop.summary.mean = matrix(Inf, 2, 2)
-colnames(results.per.pop.summary.mean) = c("AFR", "EUR")
-rownames(results.per.pop.summary.mean) = c("AFR", "EUR")
-results.per.pop.summary.mean[1,1] = mean(results.per.pop$R2_AFR2AFR, na.rm = TRUE) 
-results.per.pop.summary.mean[1,2] = mean(results.per.pop$R2_EUR2AFR, na.rm = TRUE)  
-results.per.pop.summary.mean[2,1] = mean(results.per.pop$R2_AFR2EUR, na.rm = TRUE) 
-results.per.pop.summary.mean[2,2] = mean(results.per.pop$R2_EUR2EUR, na.rm = TRUE) 
+results.per.pop.summary.mean.r2 = matrix(Inf, 2, 2)
+colnames(results.per.pop.summary.mean.r2) = c("AFR", "EUR")
+rownames(results.per.pop.summary.mean.r2) = c("AFR", "EUR")
+results.per.pop.summary.mean.r2[1,1] = mean(results.per.pop$R2_AFR2AFR, na.rm = TRUE) 
+results.per.pop.summary.mean.r2[1,2] = mean(results.per.pop$R2_EUR2AFR, na.rm = TRUE)  
+results.per.pop.summary.mean.r2[2,1] = mean(results.per.pop$R2_AFR2EUR, na.rm = TRUE) 
+results.per.pop.summary.mean.r2[2,2] = mean(results.per.pop$R2_EUR2EUR, na.rm = TRUE) 
 
 # compute standard errors of those means
-results.per.pop.summary.sd = matrix(Inf, 2, 2)
-colnames(results.per.pop.summary.sd) = c("AFR", "EUR")
-rownames(results.per.pop.summary.sd) = c("AFR", "EUR")
-results.per.pop.summary.sd[1,1] = sd(results.per.pop$R2_AFR2AFR, na.rm = TRUE) 
-results.per.pop.summary.sd[1,2] = sd(results.per.pop$R2_EUR2AFR, na.rm = TRUE)  
-results.per.pop.summary.sd[2,1] = sd(results.per.pop$R2_AFR2EUR, na.rm = TRUE) 
-results.per.pop.summary.sd[2,2] = sd(results.per.pop$R2_EUR2EUR, na.rm = TRUE) 
+results.per.pop.summary.sd.r2 = matrix(Inf, 2, 2)
+colnames(results.per.pop.summary.sd.r2) = c("AFR", "EUR")
+rownames(results.per.pop.summary.sd.r2) = c("AFR", "EUR")
+results.per.pop.summary.sd.r2[1,1] = sd(results.per.pop$R2_AFR2AFR, na.rm = TRUE) 
+results.per.pop.summary.sd.r2[1,2] = sd(results.per.pop$R2_EUR2AFR, na.rm = TRUE)  
+results.per.pop.summary.sd.r2[2,1] = sd(results.per.pop$R2_AFR2EUR, na.rm = TRUE) 
+results.per.pop.summary.sd.r2[2,2] = sd(results.per.pop$R2_EUR2EUR, na.rm = TRUE) 
 
 # print final tables
 cat("\n\nMean R2\n")
-print(results.per.pop.summary.mean)
+print(results.per.pop.summary.mean.r2)
 
 cat("\n\nStdErr R2\n")
-print(results.per.pop.summary.sd)
+print(results.per.pop.summary.sd.r2)
+
+# compute mean of means for each train/test scenario
+results.per.pop.summary.mean.corr = matrix(Inf, 2, 2)
+colnames(results.per.pop.summary.mean.corr) = c("AFR", "EUR")
+rownames(results.per.pop.summary.mean.corr) = c("AFR", "EUR")
+results.per.pop.summary.mean.corr[1,1] = mean(results.per.pop$Corr_AFR2AFR, na.rm = TRUE) 
+results.per.pop.summary.mean.corr[1,2] = mean(results.per.pop$Corr_EUR2AFR, na.rm = TRUE)  
+results.per.pop.summary.mean.corr[2,1] = mean(results.per.pop$Corr_AFR2EUR, na.rm = TRUE) 
+results.per.pop.summary.mean.corr[2,2] = mean(results.per.pop$Corr_EUR2EUR, na.rm = TRUE) 
+
+# compute standard errors of those means
+results.per.pop.summary.sd.corr = matrix(Inf, 2, 2)
+colnames(results.per.pop.summary.sd.corr) = c("AFR", "EUR")
+rownames(results.per.pop.summary.sd.corr) = c("AFR", "EUR")
+results.per.pop.summary.sd.corr[1,1] = sd(results.per.pop$Corr_AFR2AFR, na.rm = TRUE) 
+results.per.pop.summary.sd.corr[1,2] = sd(results.per.pop$Corr_EUR2AFR, na.rm = TRUE)  
+results.per.pop.summary.sd.corr[2,1] = sd(results.per.pop$Corr_AFR2EUR, na.rm = TRUE) 
+results.per.pop.summary.sd.corr[2,2] = sd(results.per.pop$Corr_EUR2EUR, na.rm = TRUE) 
+
+# print final tables
+cat("\n\nMean Spearman Correlation\n")
+print(results.per.pop.summary.mean.corr)
+
+cat("\n\nStdErr Spearman Correlation\n")
+print(results.per.pop.summary.sd.corr)

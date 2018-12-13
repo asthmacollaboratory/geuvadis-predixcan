@@ -1,4 +1,11 @@
 #!/usr/bin/env Rscript --vanilla
+# ============================================================================================================================== 
+# copyright Asthma Collaboratory (2018)
+# coded by Kevin L. Keys
+#
+# This script performs repeated subsampling of GEUVADIS Europeans.
+# The resampled number of subjects is always 89, to match the sample size of GEUVADIS Africans.
+# ============================================================================================================================== 
 
 library(data.table)
 
