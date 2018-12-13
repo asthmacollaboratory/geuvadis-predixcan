@@ -6,6 +6,7 @@
 #$ -l arch=linux-x64               # -- SGE resources (CPU type)
 
 # script variables
+glmmethod=$glmmethod
 weightsfile=$weightsfile
 glmnetdir=$glmnetdir
 newweightsfile=$newweightsfile
@@ -25,6 +26,9 @@ altpop_exprfile=$altpop_exprfile
 altpop_out_lm_file=$altpop_out_lm_file
 altpop_out_genelm_file=$altpop_out_genelm_file
 
+# output start time
+echo -e "Start timestamp: $(date)"
+
 # postprocess the weights file
 $Rscript $R_glmnet_postprocess $weightsfile $newweightsfile $discard_ratio $num_pred_file $nsamples $predictionfile $exprfile $out_lm_file $out_genelm_file $predictionfile_altpop $altpop_exprfile $altpop_out_lm_file $altpop_out_genelm_file
 
@@ -36,7 +40,10 @@ RETVAL=$?
 # in contrary case, notify of success
 if [ "$RETVAL" -ne "0" ];
 then
-  echo "ERROR" > ${logdir}/status.${glmmethod}.postprocess.${pop}
+    echo "ERROR" > ${logdir}/status.${glmmethod}.postprocess.${pop}
 else
-  echo "SUCCESS" > ${logdir}/status.${glmmethod}.postprocess.${pop}
+    echo "SUCCESS" > ${logdir}/status.${glmmethod}.postprocess.${pop}
 fi
+
+# output end time
+echo -e "End timestamp: $(date)"

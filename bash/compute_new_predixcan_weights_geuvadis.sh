@@ -11,7 +11,6 @@
 #
 # where
 # -- $ALPHA = "0.0", "0.5", or "1.0", used by glmnet to determine the training algorithm
-# -- $DEFAULT_R2 is any nonempty nonzero value, used to compute R2/p-values with default GTEx weights (or not)
 # ==============================================================================================================================
 
 # ==============================================================================================================================
@@ -40,8 +39,8 @@ fi
 # make sure that glmmethod was set
 # $glmmethod is empty if alpha was not given an acceptable value
 if [[ "$glmmethod" == "" ]]; then
-    echo -e "usage:\n\tsource compute_new_predixcan_weights.sh \$ALPHA [\$DEFAULT]\n"
-    echo -e "where \$ALPHA = {0.0, 0.5, 1.0} (required)\nand DEFAULT != 0 (optional, if calulation with default weights desired)\n"
+    echo -e "usage:\n\tsource compute_new_predixcan_weights.sh \$ALPHA\n"
+    echo -e "where \$ALPHA = {0.0, 0.5, 1.0} (required)\n"
     return 1;
 fi
 
@@ -57,20 +56,43 @@ gctadir="${rnaseqdir}/gcta"
 bindir="${MYHOME}/bin"
 datadir="${rnaseqdir}/data"
 glmnetdir="${rnaseqdir}/glmnet"
-genotypedir="${MYHOME}/gala_sage/genotypes/mergedLAT-LATP/SAGE_merge"
 logdir="${glmnetdir}/log"
+codedir="${MYHOME}/gala_sage/code"
+imputegenodir="${MYHOME}/gala_sage/genotypes/gEUVADIS"
 outdir_eur="/scratch/kkeys/${glmmethod}/genes/eur373"
 outdir_eur278="/scratch/kkeys/${glmmethod}/genes/eur278"
 outdir_yri="/scratch/kkeys/${glmmethod}/genes/yri89"
-imputegenodir="${MYHOME}/gala_sage/genotypes/gEUVADIS"
-codedir="${MYHOME}/gala_sage/code"
+outdir_tsi="/scratch/kkeys/${glmmethod}/genes/tsi"
+outdir_gbr="/scratch/kkeys/${glmmethod}/genes/gbr"
+outdir_fin="/scratch/kkeys/${glmmethod}/genes/fin"
+outdir_ceu="/scratch/kkeys/${glmmethod}/genes/ceu"
 resultsdir_eur="${glmnetdir}/${glmmethod}/eur373"
 resultsdir_eur278="${glmnetdir}/${glmmethod}/eur278"
 resultsdir_yri="${glmnetdir}/${glmmethod}/yri89"
+resultsdir_ceu="${glmnetdir}/${glmmethod}/ceu92"
+resultsdir_gbr="${glmnetdir}/${glmmethod}/gbr96"
+resultsdir_fin="${glmnetdir}/${glmmethod}/fin95"
+resultsdir_tsi="${glmnetdir}/${glmmethod}/tsi93"
+resultsdir_crosspop="${glmnetdir}/${glmmethod}/crosspop"
+
+
+resultsdir_ceu89="${resultsdir_crosspop}/ceu89"
+resultsdir_tsi89="${resultsdir_crosspop}/tsi89"
+resultsdir_gbr89="${resultsdir_crosspop}/gbr89"
+resultsdir_fin89="${resultsdir_crosspop}/fin89"
 resultssubdir_eur="${resultsdir_eur}/results"
 resultssubdir_eur278="${resultsdir_eur278}/results"
 resultssubdir_yri="${resultsdir_yri}/results"
+resultssubdir_ceu="${resultsdir_ceu}/results"
+resultssubdir_gbr="${resultsdir_gbr}/results"
+resultssubdir_fin="${resultsdir_fin}/results"
+resultssubdir_tsi="${resultsdir_tsi}/results"
+resultssubdir_ceu89="${resultsdir_ceu89}/results"
+resultssubdir_gbr89="${resultsdir_gbr89}/results"
+resultssubdir_fin89="${resultsdir_fin89}/results"
+resultssubdir_tsii89="${resultsdir_tsi89}/results"
 tmpdir="${MYHOME}/tmp"
+crosspop_dir="${geuvadisdir}/crosspop"
 
 # make output and results directories, in case they doesn't exist
 mkdir -p $outdir_eur
@@ -79,24 +101,33 @@ mkdir -p $outdir_yri
 mkdir -p $resultsdir_eur
 mkdir -p $resultsdir_eur278
 mkdir -p $resultsdir_yri
+mkdir -p $resultsdir_ceu
+mkdir -p $resultsdir_gbr
+mkdir -p $resultsdir_fin
+mkdir -p $resultsdir_tsi
 mkdir -p $resultssubdir_eur
 mkdir -p $resultssubdir_eur278
 mkdir -p $resultssubdir_yri
+mkdir -p $resultssubdir_ceu
+mkdir -p $resultssubdir_gbr
+mkdir -p $resultssubdir_fin
+mkdir -p $resultssubdir_tsi
 mkdir -p $tmpdir
+mkdir -p $crosspop_dir
 
 # script files
 exprfile_eur="${geuvadisdir}/geuvadis.eur373.RPKM.invnorm.txt"
 exprfile_eur278="${geuvadisdir}/geuvadis.eur278.RPKM.invnorm.txt"
 exprfile_yri="${geuvadisdir}/geuvadis.yri89.RPKM.invnorm.txt"
-exprfile_fin95="${geuvadisdir}/geuvadis.fin95.RPKM.invnorm.txt"
+exprfile_fin="${geuvadisdir}/geuvadis.fin95.RPKM.invnorm.txt"
 phenofile_eur="${geuvadisdir}/geuvadis.eur373.RPKM.invnorm.pheno"
 phenofile_eur278="${geuvadisdir}/geuvadis.eur278.RPKM.invnorm.pheno"
 phenofile_yri="${geuvadisdir}/geuvadis.yri89.RPKM.invnorm.pheno"
-phenofile_fin95="${geuvadisdir}/geuvadis.fin95.RPKM.invnorm.pheno"
+phenofile_fin="${geuvadisdir}/geuvadis.fin95.RPKM.invnorm.pheno"
 genelist="${geuvadisdir}/human_ens_GRCh37_genechrpos_plusmin500kb.txt"
 subjectids_eur="${geuvadisdir}/geuvadis.eur373.sampleids.txt"
 subjectids_yri="${geuvadisdir}/geuvadis.yri89.sampleids.txt"
-subjectids_fin95="${geuvadisdir}/geuvadis.fin95.sampleids.txt"
+subjectids_fin="${geuvadisdir}/geuvadis.fin95.sampleids.txt"
 subjectids_eur278="${geuvadisdir}/geuvadis.eur278.sampleids.txt"
 predictionfile_eur="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictions.txt"
 predictionfile_eur278="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictions.txt"
@@ -104,7 +135,7 @@ predictionfile_yri="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictions.tx
 predictionfile_eur2yri="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictinto_yri89.txt"
 predictionfile_eur2eur="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictinto_eur373.txt"
 predictionfile_eur278toyri="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_yri89.txt"
-predictionfile_eur278tofin95="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_fin95.txt"
+predictionfile_eur278tofin="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_fin95.txt"
 predictionfile_eur278toeur278="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_eur278.txt"
 predictionfile_yri2eur="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictinto_eur373.txt"
 predictionfile_yri2yri="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictinto_yri89.txt"
@@ -127,12 +158,12 @@ out_genelm_file_eur="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_genelm_predv
 out_genelm_file_eur278="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_genelm_predvmeas_results.txt"
 out_genelm_file_yri="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_genelm_predvmeas_results.txt"
 out_lm_file_eur2yri="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictinto_yri89_lm_predvmeas_results.txt"
-out_lm_file_eur278tofin95="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_fin95_lm_predvmeas_results.txt"
+out_lm_file_eur278tofin="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_fin95_lm_predvmeas_results.txt"
 out_lm_file_eur278toyri="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_yri89_lm_predvmeas_results.txt"
 out_lm_file_yri2eur="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictinto_eur373_lm_predvmeas_results.txt"
 out_genelm_file_eur2yri="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictinto_yri89_genelm_predvmeas_results.txt"
 out_genelm_file_eur278toyri="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_yri89_genelm_predvmeas_results.txt"
-out_genelm_file_eur278tofin95="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_fin95_genelm_predvmeas_results.txt"
+out_genelm_file_eur278tofin="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_fin95_genelm_predvmeas_results.txt"
 out_genelm_file_yri2eur="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictinto_eur373_genelm_predvmeas_results.txt"
 h2file_eur="${resultsdir_eur}/geuvadis_h2_eur373.txt"
 h2file_null_eur="${resultsdir_eur}/geuvadis_h2_null_eur373.txt"
@@ -147,6 +178,7 @@ R_compute_r2="${codedir}/geuvadis_gtex_compute_r2.R"
 R_glmnet_postprocess="${codedir}/geuvadis_glmnet_postprocess.R"
 R_subsample_eur="${codedir}/geuvadis_subsample_eur373.R" 
 R_predict_new_pop="${codedir}/geuvadis_predict_in_altpop.R"
+R_subsample_pop="${codedir}/geuvadis_subsample_onepop.R" 
 BASH_run_glmnet="${codedir}/qsub_geuvadis_run_glmnet.sh"
 BASH_collect_weights="${codedir}/qsub_geuvadis_glmnet_collect_weights.sh"
 BASH_postprocess_glmnet="${codedir}/qsub_geuvadis_glmnet_postprocess.sh"
@@ -203,12 +235,15 @@ predictionfile_header_eur278="Gene\tHG00096\tHG00097\tHG00099\tHG00100\tHG00101\
 # ==============================================================================================================================
 run_compute_weights_eur=1
 run_compute_weights_yri=1
+
 run_compute_weights_eur278_toyri=1
 run_compute_weights_eur278_tofinn=1
-run_compute_weights_eur89_to_yri89=0
+run_compute_weights_eur89_to_yri89=1
+
+run_compute_weights_crosspop=0
 
 # ==============================================================================================================================
-# start script
+# start job scheduling script
 # ==============================================================================================================================
 
 # -------------------- #
@@ -217,7 +252,6 @@ echo "Start time: $(date)"
 # -------------------- #
 # make necessary output directories
 if [[ ! -d "$logdir" ]]; then mkdir -p $logdir; fi
-#if [[ ! -d "$outdir" ]]; then mkdir -p $outdir; fi
 
 
 # -------------------- #
@@ -244,7 +278,6 @@ if [[ "${run_compute_weights_eur}" -eq "0" ]]; then
 
     h_rt="23:59:59"
     pop="eur278" 
-    altpop="yri89"
     subjectids=$subjectids_eur
     exprfile=$exprfile_eur
     outdir=$outdir_eur
@@ -255,6 +288,8 @@ if [[ "${run_compute_weights_eur}" -eq "0" ]]; then
     lambdafile=$lambdafile_eur
     predictionfile_altpop=$predictionfile_eur2yri
     predictionfile_samepop=$predictionfile_eur2eur
+
+    altpop="yri89"
     altpop_out_lm_file=$out_lm_file_eur2yri
     altpop_out_genelm_file=$out_genelm_file_eur2yri
     altpop_exprfile=$exprfile_yri
@@ -317,7 +352,6 @@ if [[ "${run_compute_weights_yri}" -eq "0" ]]; then
     # point prediction, weight, lambda, expression, subject files to YRI
     # set alternative population parameters to EUR 
     pop="yri89"
-    altpop="eur373"
     subjectids_altpop=$subjectids_eur
     h_rt="12:00:00"  # smaller sample size than eur373 --> less compute time necessary
     subjectids=$subjectids_yri
@@ -330,6 +364,8 @@ if [[ "${run_compute_weights_yri}" -eq "0" ]]; then
     lambdafile=$lambdafile_yri
     predictionfile_altpop=$predictionfile_yri2eur
     predictionfile_samepop=$predictionfile_yri2yri
+
+    altpop="eur373"
     altpop_out_lm_file=$out_lm_file_yri2eur
     altpop_out_genelm_file=$out_genelm_file_yri2eur
     altpop_exprfile=$exprfile_eur
@@ -496,11 +532,11 @@ if [[ "${run_compute_weights_eur278_tofinn}" -eq "0" ]]; then
 
     
     altpop="fin95"
-    altpop_exprfile=$exprfile_fin95
-    subjectids_altpop=$subjectids_fin95
-    predictionfile_altpop=$predictionfile_eur278tofin95
-    altpop_out_lm_file=$out_lm_file_eur278tofin95
-    altpop_out_genelm_file=$out_genelm_file_eur278tofin95
+    altpop_exprfile=$exprfile_fin
+    subjectids_altpop=$subjectids_fin
+    predictionfile_altpop=$predictionfile_eur278tofin
+    altpop_out_lm_file=$out_lm_file_eur278tofin
+    altpop_out_genelm_file=$out_genelm_file_eur278tofin
 
     # -------------------- #
     # estimate new prediction weights with glmnet, parallelized across genes
@@ -674,6 +710,87 @@ if [[ "${run_compute_weights_eur89_to_yri89}" -eq "0" ]]; then
 
     done
 
+fi
+
+# ==============================================================================================================================
+# cross-population training
+# ==============================================================================================================================
+#
+# in this section we will train from CEU, GBR, TSI, FIN, YRI into all other populations
+# for example, we train in CEU and predict into other four populations
+#
+# key is that we downsample to smallest population. sample sizes:
+# -- YRI = 89
+# -- CEU = 92
+# -- FIN = 95
+# -- GBR = 96
+# -- TSI = 93
+#
+# thus, we must downsample to 89 samples in each training population 
+
+if [[ "${run_compute_weights_crosspop}" -eq "0" ]]; then
+
+    # arrays of pops + their respective sample sizes
+    pops=("ceu" "tsi" "gbr" "fin" "yri")
+    popsizes=("92" "93" "96" "95" "89")
+
+    # set runtime to relatively high value
+    h_rt="23:59:59"
+    #h_rt="00:29:59"
+
+    # loop over pops
+    for i in $(seq 0 4); do 
+
+        # set variables for current pop 
+        # train in "pop", test in "notpop" 
+        pop="${pops[$i]}"  ## note absence of sample size; will add subsample size 89 to this later 
+        notpop="not${pop}"
+        popsize="${popsizes[$i]}"
+        altpop="${notpop}"
+        subjectids="${geuvadisdir}/geuvadis.${pop}${popsize}.sampleids.txt"
+
+        # first subsample the population in question
+        $Rscript $R_subsample_pop $pop $exprfile_eur $exprfile_yri $subjectids $crosspop_dir
+
+        # rename population with correct subsampled population size
+        pop="${pop}89"
+
+        outdir="/scratch/kkeys/${glmmethod}/genes/${pop}"
+        resultsdir="${resultsdir_crosspop}/${pop}"
+        resultssubdir="${resultsdir}/results"
+
+        mkdir -p $outdir
+        mkdir -p $resultsdir
+        mkdir -p $resultssubdir
+
+        subjectids="${crosspop_dir}/geuvadis.${pop}.sampleids.txt"
+        exprfile="${crosspop_dir}/geuvadis.${pop}.RPKM.invnorm.txt"
+        predictionfile="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictions.txt"
+        lambdafile="${resultsdir}/geuvadis_${glmmethod}_${pop}_lambdas.txt"
+        weightsfile="${resultsdir}/geuvadis_${glmmethod}_${pop}_weights.txt"
+        predictionfile_samepop="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictinto_${pop}.txt"
+        num_pred_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_numpred.txt"
+        nsamples="89"
+        out_lm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_lm_predvmeas_results.txt"
+        newweightsfile="${resultsdir}/geuvadis_${glmmethod}_${pop}_weights_noNA.txt"
+        out_genelm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_genelm_predvmeas_results.txt"
+        h2file="${resultsdir}/geuvadis_h2_${pop}.txt"
+        h2file_null="${resultsdir}/geuvadis_h2_null_${pop}.txt"
+        nfolds=$nfolds_yri
+        phenofile="${crosspop_dir}/geuvadis.${pop}.RPKM.invnorm.pheno"
+
+        altpop_exprfile="${crosspop_dir}/geuvadis.${notpop}.RPKM.invnorm.txt"
+        subjectids_altpop="${crosspop_dir}/geuvadis.${notpop}.sampleids.txt"
+        predictionfile_altpop="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictinto_${notpop}.txt"
+        altpop_out_lm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictinto_${notpop}_lm_predvmeas_results.txt"
+        altpop_out_genelm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictinto_${notpop}_genelm_predvmeas_results.txt"
+
+### TODO: Ensure that $predictionfile_header causes no problems!!!!
+        predictionfile_header="$(head -n 1 ${exprfile} | sed -e 's/,/\t/g')"
+
+
+        source geuvadis_qsub_jobs.sh
+    done
 fi
 
 # end script
