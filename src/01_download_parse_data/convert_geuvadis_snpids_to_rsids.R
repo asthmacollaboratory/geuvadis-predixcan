@@ -1,16 +1,47 @@
-#!/usr/bin/env Rscript --vanilla
+##!/usr/bin/env Rscript --vanilla
 
-library(data.table)
-library(methods)
+supressMessages(library(data.table))
+supressMessages(library(methods))
+suppressMessages(library(optparse))
+
+# parse command line variables
+option_list = list(
+    make_option(
+        c("-f", "--bim-file"),
+        type    = "character",
+        default = NULL,
+        help    = "PLINK BIM file for GEUVADIS genotype data",
+        metavar = "character"
+    ),
+    make_option(
+        c("-i", "--SNP-ID-file"),
+        type    = "character",
+        default = NULL,
+        help    = "List of dbSNP IDs to use for remapping",
+        metavar = "character"
+    ),
+    make_option(
+        c("-o", "--output-file"),
+        type    = "character",
+        default = NULL,
+        help    = "Path to file for saving results."
+        metavar = "character"
+    ),
+)
+
+opt_parser = OptionParser(option_list = option_list)
+opt = parse_args(opt_parser, convert_hyphens_to_underscores = TRUE)
+
+cat("Parsed options:\n\n")
+print(opt)
 
 # parse command line arguments
-args     = commandArgs(TRUE)
-in.file  = args[1] # "GEUVADIS.chr22.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.annotv2.genotypes.rsq_0.8_maf_0.01_hwe_0.00001_geno_0.05.bim"
-id.file  = args[2] # "../snp_ids/Phase1.Geuvadis_dbSnp137_idconvert.txt"
-out.file = args[3]
+in.file  = opt$bim_file
+id.file  = opt$SNP_ID_file
+out.file = opt$output_file
 
 # load PLINK BIM
-x = fread(in.file)
+x = fread(in.file, header = FALSE)
 
 # load ID conversion file
 y = fread(id.file, header = FALSE)

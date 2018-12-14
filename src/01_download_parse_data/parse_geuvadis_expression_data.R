@@ -20,6 +20,7 @@
 suppressMessages(library(data.table))
 suppressMessages(library(methods))
 suppressMessages(library(optparse))
+suppressMessages(library(dplyr))
 
 # parse command line variables
 option_list = list(
@@ -115,9 +116,9 @@ eur.ids.file      = file.path(opt$output_directory, opt$EUR_IDs_out_file)
 yri.ids.file      = file.path(opt$output_directory, opt$YRI_IDs_out_file) 
 
 # load from file
-rnaseq.data     = fread(rnaseq.file)             # load normalized RPKMs for gEUVADIS
-eur.sample.ids  = fread(eur.sampleid.file)[[1]]  # IDs for EUR, we want these as a *vector*
-yri.sample.ids  = fread(yri.sampleid.file)[[1]]  # same deal for YRI 
+rnaseq.data     = fread(rnaseq.file, header = TRUE)              # load normalized RPKMs for gEUVADIS
+eur.sample.ids  = fread(eur.sampleid.file, header = FALSE)[[1]]  # IDs for EUR, we want these as a *vector*
+yri.sample.ids  = fread(yri.sampleid.file, header = FALSE)[[1]]  # same deal for YRI 
 
 # discard duplicate gene ID and chr, position info
 # rename gene ID to just "Gene"
@@ -126,25 +127,25 @@ rnaseq.data = rnaseq.data[,-c(2:4)]
 colnames(rnaseq.data)[1] = "Gene"
 rnaseq.data$Gene = strtrim(rnaseq.data$Gene, 15)
 
-### TODO:
-### melt rnaseq.data
-### dplyr filter on *.sample.ids
-### dcast to eur, yri
-# subset the RNA-Seq data
-eur = rnaseq.data[, colnames(rnaseq.data) %in% eur.sample.ids, with = FALSE]
-yri = rnaseq.data[, colnames(rnaseq.data) %in% yri.sample.ids, with = FALSE]
+# melt data frame
+rnaseq.melt = melt(rnaseq.data, value.name = "Expression", variable.name = "IID", id.vars = "Gene")
 
-# put "Gene" column in yri 
-eur$Gene = rnaseq.data$Gene
-yri$Gene = rnaseq.data$Gene
+# parse EUR, YRI from (melted) expression data
+# entails filtering IID column against relevant sample IDs
+# recast result into wide format
+eur = rnaseq.melt %>%
+    dplyr::filter(IID %in% eur.sample.ids) %>%
+    dcast(Gene ~ IID, value.var = "Expression") %>%
+    as.data.table
+
+yri = rnaseq.melt %>%
+    dplyr::filter(IID %in% yri.sample.ids) %>%
+    dcast(Gene ~ IID, value.var = "Expression") %>%
+    as.data.table
 
 # order eur and yri by gene ID
 setorder(x=yri, Gene, na.last = TRUE)
 setorder(x=eur, Gene, na.last = TRUE)
-
-# reorder columns of yri, putting "Gene" first
-eur = data.table(eur[,c(ncol(eur),1:(ncol(eur)-1)), with = F])
-yri = data.table(yri[,c(ncol(yri),1:(ncol(yri)-1)), with = F])
 
 # write subsetted data.tables to file
 fwrite(x = eur, file = eur.out.file, col.names = TRUE, quote = FALSE, sep = "\t")
@@ -163,8 +164,8 @@ tyri     = dcast(data = yri.melt, formula = IID ~ Gene, value.var = "Expression"
 setkey(tyri, IID)
 setorder(tyri, IID)
 
-fwrite(x = teur, file = teur.out.file, quote = FALSE)
-fwrite(x = tyri, file = tyri.out.file, quote = FALSE)
+fwrite(x = teur, file = teur.out.file, quote = FALSE, sep = "\t")
+fwrite(x = tyri, file = tyri.out.file, quote = FALSE, sep = "\t")
 
 # also save separate lists of EUR, YRI sample IDs
 # this will come in handy when subsetting genotypes

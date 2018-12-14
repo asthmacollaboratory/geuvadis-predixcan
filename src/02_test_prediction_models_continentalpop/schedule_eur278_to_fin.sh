@@ -1,16 +1,39 @@
 #!/usr/bin/env bash
-# ==============================================================================================================================
-# copyright Asthma Collboratory (2018)
-# coded by Kevin L. Keys
-#
-# This script is called from the main GEUVADIS prediction model training pipeline. IT DOES NOT WORK OUTSIDE OF THE SCRIPT.
-# The requisite variables in the following qsub arguments are set in the pipeline.
-# This script schedules three jobs:
-#     1. compute new weights from a training set of genotypes and gene expression measures
-#     2. collect the individual gene files and compile them into a handful of files
-#     3. postprocess the results, generate imputation R2 and correlations
-# ==============================================================================================================================
 
+# set variables to population-specific parameters
+# point prediction, weight, lambda, expression, subject files to EUR
+# set alternative population parameters to FINN
+h_rt="23:59:59"
+pop="eur278" 
+subjectids=$subjectids_eur278
+exprfile=$exprfile_eur278
+outdir=$outdir_eur278
+resultssubdir=$resultssubdir_eur278
+resultsdir=$resultsdir_eur278
+predictionfile=$predictionfile_eur278
+predictionfile_header=$predictionfile_header_eur278
+lambdafile=$lambdafile_eur278
+weightsfile=$weightsfile_eur278
+predictionfile_samepop=$predictionfile_eur278toeur278
+nsamples=$nsamples_eur278
+num_pred_file=$num_pred_file_eur278
+out_lm_file=$out_lm_file_eur278
+phenofile=$phenofile_eur278
+newweightsfile=$newweightsfile_eur278
+out_genelm_file=$out_genelm_file_eur278
+h2file=$h2file_eur278
+h2file_null=$h2file_null_eur278
+nfolds=$nfolds_eur278
+
+
+altpop="fin95"
+altpop_exprfile=$exprfile_fin
+subjectids_altpop=$subjectids_fin
+predictionfile_altpop=$predictionfile_eur278tofin
+altpop_out_lm_file=$out_lm_file_eur278tofin
+altpop_out_genelm_file=$out_genelm_file_eur278tofin
+
+# -------------------- #
 # estimate new prediction weights with glmnet, parallelized across genes
 qsub -N glmnet.${glmmethod}.${pop} \
      -v genelist=$genelist,subjectids=$subjectids,Rscript=$Rscript,R_compute_new_weights=$R_compute_new_weights,exprfile=$exprfile,logdir=$logdir,alpha=$alpha,gctadir=$gctadir,glmmethod=$glmmethod,outdir=$outdir,imputegenodir=$imputegenodir,maf=$maf,hwe=$hwe,nthreads=$nthreads,PLINK=$PLINK,memory_limit_mb=$memory_limit_mb,resultssubdir=$resultssubdir,resultsdir=$resultsdir,pop=$pop,altpop=$altpop,tmpdir=$tmpdir,subjectids_altpop=$subjectids_altpop,R_predict_new_pop=$R_predict_new_pop,GCTA=$GCTA,phenofile=$phenofile,FIESTA=$PYTHON_fiesta,PYTHON=$PYTHON,nfolds=$nfolds \
@@ -33,7 +56,7 @@ h_rt="06:00:00"
 # merge these results into single file for weights, single file for lambdas, etc.
 qsub -N glmnet.${glmmethod}.collect.weights.${pop} \
      -hold_jid glmnet.${glmmethod}.${pop} \
-     -v weightsfile=$weightsfile,glmnetdir=$glmnetdir,glmmethod=$glmmethod,logdir=$logdir,predictionfile=$predictionfile,lambdafile=$lambdafile,outdir=$outdir,resultsdir=$resultsdir,resultssubdir=$resultssubdir,tmpdir=$tmpdir,pop=$pop,altpop=$altpop,predictionfile_altpop=$predictionfile_altpop,predictionfile_samepop=$predictionfile_samepop,predictionfile_header="${predictionfile_header}",h2file=$h2file,h2file_null=$h2file_null \
+     -v weightsfile=$weightsfile,glmnetdir=$glmnetdir,glmmethod=$glmmethod,logdir=$logdir,predictionfile=$predictionfile,lambdafile=$lambdafile,outdir=$outdir,resultsdir=$resultsdir,resultssubdir=$resultssubdir,tmpdir=$tmpdir,pop=$pop,altpop=$altpop,predictionfile_altpop=$predictionfile_altpop,predictionfile_samepop=$predictionfile_samepop,predictionfile_header=$predictionfile_header,h2file=$h2file,h2file_null=$h2file_null \
      -o $logdir \
      -e $logdir \
      -l mem_free=$memory_limit \

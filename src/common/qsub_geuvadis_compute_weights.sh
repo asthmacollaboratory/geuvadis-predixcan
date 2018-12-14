@@ -4,36 +4,66 @@
 #$ -r y                            # -- tell the system that if a job crashes, it should be restarted
 #$ -j y                            # -- tell the system that the STDERR and STDOUT should be joined
 #$ -l arch=linux-x64               # -- SGE resources (CPU type)
+# ==========================================================================================
+# coded by Kevin L. Keys (2018)
+#
+# This script prepares and executes training and testing of prediction models using
+# GEUVADIS gene expression data.
+# ==========================================================================================
 
-# user limits: -c max size of core files created
-date
-hostname
-ulimit -c 0 
 
+# ==========================================================================================
+# BASH script settings
+# ==========================================================================================
+set -e      # script will exit on error
+set -u      # script will exit if it sees an uninitialized variable
+ulimit -c 0 # user limits: -c covers the max size of core files created
+
+
+# ==========================================================================================
+# script variables (passed from QSUB command) 
+# ==========================================================================================
+
+# binaries
+PLINK=$PLINK
+Rscript=$Rscript
+
+# external scripts
+R_compute_new_weights=$R_compute_new_weights
+R_predict_new_pop=$R_predict_new_pop
+
+# directories
+logdir=$logdir
+outdir=$outdir
+gctadir=$gctadir
+imputegenodir=$imputegenodir
+resultsdir=$resultsdir
+resultssubdir=$resultssubdir
+tmpdir=$tmpdir
+
+# file paths
 genelist=$genelist
 subjectids=$subjectids
-Rscript=$Rscript
-R_compute_new_weights=$R_compute_new_weights
 exprfile=$exprfile
-logdir=$logdir
+subjectids_altpop=$subjectids_altpop
+
+# other variables
 alpha=$alpha
-gctadir=$gctadir
 glmmethod=$glmmethod
-outdir=$outdir
-imputegenodir=$imputegenodir
 maf=$maf
 hwe=$hwe
 nthreads=$nthreads
-PLINK=$PLINK
 memory_limit_mb=$memory_limit_mb
-resultsdir=$resultsdir
-resultssubdir=$resultssubdir
 pop=$pop
 altpop=$altpop
-tmpdir=$tmpdir
-subjectids_altpop=$subjectids_altpop
-R_predict_new_pop=$R_predict_new_pop
 
+# ==========================================================================================
+# executable code 
+# ==========================================================================================
+
+# start by noting current date, time, and process hostname 
+echo "Date: $(date)"
+echo "Host name: $(hostname)"
 
 # parse current gene
 # NOTA BENE: in general BASH arrays are 0-indexed while SGE tasks are 1-indexed
@@ -46,46 +76,47 @@ gene=${genes[$i]}
 
 echo "Preparing analysis of ${gene} in population ${pop}..."
 
-# path to gene folder
+# create directory path to gene folder
+# make gene directory in case it doesn't exist
 genepath="${outdir}/${gene}"
 genopfx="${genepath}/${gene}"
-mkdir -p $genepath # make gene directory in case it doesn't exist
+mkdir -p $genepath 
+
+# create file paths to PLINK output 
 rawpath="${genopfx}.raw"
 bimfile="${genopfx}.bim"
-#bimfile="/netapp/home/kkeys/gala_sage/genotypes/SAGE/mergedLAT-LATP/SAGE_mergedLAT-LATP_030816_rsID.bim"
-#resultssubdir="${resultsdir}/results"
+
+# also create paths for 
 genopfx_altpop="${genepath}/${gene}_${altpop}"
 rawpath_altpop="${genopfx_altpop}.raw"
 
-# output files
-#predictionfile="${outdir}/sage_predictions_${glmmethod}_${gene}.txt"
-#lambdafile="${outdir}/sage_lambdas_${glmmethod}_${gene}.txt"
-#weightsfile="${outdir}/sage_weights_${glmmethod}_${gene}.txt"
+# create paths to output files for results
 predictionfile="${resultssubdir}/geuvadis_predictions_${glmmethod}_${gene}.txt"
 lambdafile="${resultssubdir}/geuvadis_lambdas_${glmmethod}_${gene}.txt"
 weightsfile="${resultssubdir}/geuvadis_weights_${glmmethod}_${gene}.txt"
 predictionfile_altpop="${resultssubdir}/geuvadis_predictinto_${altpop}_${glmmethod}_${gene}.txt"
 predictionfile_samepop="${resultssubdir}/geuvadis_predictinto_${pop}_${glmmethod}_${gene}.txt"
 
-#echo "weightsfile = $weightsfile"
-#echo "predictionfile = $predictionfile"
-#echo "lambdafile = $lambdafile"
-#echo "predictionfile_altpop = $predictionfile_altpop"
+# make note of output file paths, useful for debugging
+echo "Will save output to the following files:"
+echo -e "\tweightsfile = $weightsfile"
+echo -e "\tpredictionfile = $predictionfile"
+echo -e "\tlambdafile = $lambdafile"
+echo -e "\tpredictionfile_altpop = $predictionfile_altpop"
 
-
+# parse info for current gene 
 mygeneinfo=$(grep $gene ${genelist})
 chr=$(echo $mygeneinfo | cut -f 2 -d " ")
 startpos=$(echo $mygeneinfo | cut -f 3 -d " ")
 endpos=$(echo $mygeneinfo | cut -f 4 -d " ")
 
-# with $chr we point to the correct BED/BIM/BAM files
-#bedfile="${imputegenodir}/SAGE_IMPUTE_HRC_chr${chr}.dose"
+# with $chr we can point to the correct BED/BIM/BAM files
 bedfile="${imputegenodir}/GEUVADIS.ALLCHR.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.annotv2.genotypes.rsq_0.8_maf_0.01_hwe_0.00001_geno_0.05"
 
 # create a PLINK RAW file
 # this codes the dosage format required for glmnet
 # here we use the genome-wide GEUVADIS genotype data with rsIDs
- $PLINK \
+$PLINK \
     --bfile $bedfile \
     --chr ${chr} \
     --from-bp ${startpos} \
@@ -98,30 +129,18 @@ bedfile="${imputegenodir}/GEUVADIS.ALLCHR.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.ann
     --threads ${nthreads} \
     --memory ${memory_limit_mb} \
     --keep ${subjectids} \
-    --silent
+    --silent ## turn this off first when debugging
 
-## using WGS or imputed data? the IDs probably need replacing
-## replace the Subject IDs with NWDIDs one-by-one using $sage_lab2nwd
-## this loop **explicitly clobbers the PLINK RAW file**
-## do not make a habit of this! 
-#while read -r -a line;
-#do
-#    nwdid="${line[0]}"
-#    subjid="${line[1]}"
-#    sed -i -e "s/$subjid/$nwdid/g" ${rawpath}
-#done < ${sage_lab2nwd}
-#
-##bimfile="${sagegenopfx}.bim"
- 
 # call glmnet script
 # the method used depends on the alpha value: 
 # alpha="0.5" --> elastic net regression
 # alpha="1.0" --> LASSO regression
 # alpha="0.0" --> ridge regression
-####echo "starting R script to compute new GTEx weights..."
-#### $Rscript $R_compute_new_weights ${rawpath} ${exprfile} ${gene} ${predictionfile} ${lambdafile} ${alpha} ${weightsfile} ${bimfile}
+echo "starting R script to compute new GTEx weights..."
+$Rscript $R_compute_new_weights ${rawpath} ${exprfile} ${gene} ${predictionfile} ${lambdafile} ${alpha} ${weightsfile} ${bimfile}
 
 # query return value of previous command
+# will use this later to determine successful execution
 RETVAL=$?
 
 # get list of SNPs to subset in alternate population
@@ -129,10 +148,10 @@ snps_to_extract="${tmpdir}/snps_to_extract_${altpop}_${gene}.txt"
 cat ${weightsfile} | cut -f 3 | grep "rs" | sort | uniq > $snps_to_extract 
 
 
-# create a PLINK RAW file
+# create a PLINK RAW file, but this time for the testing population
 # this codes the dosage format required for glmnet
 # here we use the genome-wide GEUVADIS genotype data with rsIDs
- $PLINK \
+$PLINK \
     --bfile $bedfile \
     --recode A \
     --make-bed \
@@ -140,34 +159,33 @@ cat ${weightsfile} | cut -f 3 | grep "rs" | sort | uniq > $snps_to_extract
     --threads ${nthreads} \
     --memory ${memory_limit_mb} \
     --keep ${subjectids_altpop} \
-    --extract ${snps_to_extract} #\
-#    --silent
+    --extract ${snps_to_extract} \
+    --silent ## turn this off first when debugging
+
+# note the following commented PLINK options: why are they not used?
+# we want to use all possible SNPs from training pop
+# but genetic variation may not match that of testing pop
+# tricky to filter on same MAF/HWE thresholds as a result
+# to be safe, just include all possible SNPs
 #    --maf ${maf} \
 #    --hwe ${hwe} \
 #    --chr ${chr} \
 #    --from-bp ${startpos} \
 #    --to-bp ${endpos} \
 
-# produce prediction from primary pop to alt pop
- $Rscript $R_predict_new_pop ${weightsfile} ${rawpath_altpop} ${predictionfile_altpop} ${gene} 
-
-# also perform prediction from primary pop into itself
-# different from true out-of-sample populations but systematically same as before
-# want this to compare against quality of out-of-sample pops
- $Rscript $R_predict_new_pop ${weightsfile} ${rawpath} ${predictionfile_samepop} ${gene} 
-
+# predict from training pop to testing pop
+$Rscript $R_predict_new_pop ${weightsfile} ${rawpath_altpop} ${predictionfile_altpop} ${gene} 
 
 # query return value of previous command
 let "RETVAL+=$?"
 
-#    # call R2 calculation script with default weights
-#    #if [[ "$r2_default" != "0" -a "$r2_default" != ""]] ; then
-#    if [[ ! -z "$r2_default" ]]; then
-#        if [[ "$r2_default" != "0" ]]; then 
-#            $Rscript $R_compute_r2 ${rawpath} ${exprfile} ${gene} ${ucsc_snpfile} ${r2resultsfile} "genotype_data"
-#        fi
-#    fi
+# also perform prediction from training pop into itself
+# different from true out-of-sample populations but systematically same as before
+# want this to compare against quality of out-of-sample pops
+$Rscript $R_predict_new_pop ${weightsfile} ${rawpath} ${predictionfile_samepop} ${gene} 
 
+# query return value of previous command
+let "RETVAL+=$?"
 
 # if return value is not 0, then previous command did not exit correctly
 # create a status file notifying of error
@@ -179,14 +197,7 @@ else
   echo "SUCCESS" > ${logdir}/status.${glmmethod}.${gene}.${pop}
 fi
 
-# DO NOT clean up scratch space, e.g., with `rm -rf ${scratchdir}`
-# will subsequently compile results after this array job completes
-
-#cat $predictionfile
-#cat $lambdafile
-#cat $weightsfile
-
-
-# ask job to report on itself
+# tell job to report on itself
+# also makes a useful handle for inspecting completed jobs
 echo "job ${JOB_ID} report:"
 qstat -j ${JOB_ID}

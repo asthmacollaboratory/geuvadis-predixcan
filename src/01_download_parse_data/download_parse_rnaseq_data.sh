@@ -38,7 +38,7 @@ RSCRIPT=$(whereis Rscript | awk '{print $2}')
 # ==========================================================================================
 # external scripts 
 # ==========================================================================================
-R_parse_geu_expr="${thisdir}/parse_geuvadis_expressions.R"
+R_parse_geu_expr="${thisdir}/parse_geuvadis_expression_data.R"
 
 
 # ==========================================================================================
@@ -69,9 +69,9 @@ mkdir -p ${analysisdir}
 mkdir -p ${datadir}
 mkdir -p ${geuvadis_rnaseqdir}
 
-# download expression data
-wget ${rnaseq_url} -P ${geuvadis_rnaseqdir}
-gzip --stdout --decompress ${rnaseq_gzfile} > ${all_rnaseq_data_file}
+## download expression data
+#wget ${rnaseq_url} -P ${geuvadis_rnaseqdir}
+#gzip --stdout --decompress ${rnaseq_gzfile} > ${all_rnaseq_data_file}
 
 # everything required for parsing gene expression data is in one script
 $RSCRIPT $R_parse_geu_expr \

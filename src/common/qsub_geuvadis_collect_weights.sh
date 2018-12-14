@@ -1,33 +1,24 @@
-#!/usr/bin/env bash                # -- what is the language of this shell
-#$ -S /bin/bash                    # -- the shell for the job
-##$ -M kevin.keys@ucsf.edu          # -- email status of this job to this address
-##$ -m bes                          # -- email on beginning, end, and suspension of job
-#$ -r y                            # -- tell the system that if a job crashes, it should be restarted
-#$ -j y                            # -- tell the system that the STDERR and STDOUT should be joined
-#$ -l mem_free=1G                  # -- submits on nodes with enough free memory (required)
-#$ -l arch=linux-x64               # -- SGE resources (CPU type)
-#$ -l h_rt=0:10:00                 # -- runtime limit in hours 
+#!/usr/bin/env bash       # -- what is the language of this shell
+#$ -S /bin/bash           # -- the shell for the job
+#$ -r y                   # -- tell the system that if a job crashes, it should be restarted
+#$ -j y                   # -- tell the system that the STDERR and STDOUT should be joined
+#$ -l mem_free=1G         # -- submits on nodes with enough free memory (required)
+#$ -l arch=linux-x64      # -- SGE resources (CPU type)
+#$ -l h_rt=0:10:00        # -- runtime limit in hours
+# ==========================================================================================
+# copyright Asthma Collboratory (2018)
+# coded by Kevin L. Keys
 #
 # This script gathers results from a run of compute_new_predixcan_weights.sh.
 # It produces two files:
 # -- $resultsfile, which compiles prediction results for the current glmnet run;
 # -- $weightsfile, which compiles nonzero prediction weights for the same glmnet run
-#
-# Call this script via qsub from compute_new_predixcan_weights.sh as follows:
-#
-# qsub -N glmnet.collect.results.${glmmethod} \
-#      -o $logdir \
-#      -e $logdir \
-#      -v resultsfile=$resultsfile,weightfile=$weightfile,glmnetdir=$glmnetdir,glmmethod=$glmmethod,logdir=$logdir \
-#      $glmnetdir/geuvadis_glmnet_collect_weights.sh
-#
-# coded by Kevin L. Keys (2018)
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# ==========================================================================================
 
 # user limits: -c max size of core files created
 echo "Start time: $(date)"
 echo "Host name: $(hostname)"
-ulimit -c 0 
+ulimit -c 0
 
 # script variables from qsub
 weightsfile=$weightsfile
@@ -69,7 +60,7 @@ RETVAL=$?
 echo "exit status after making prediction file: $RETVAL"
 
 # clean up temporary directory
-rm -f $tmpdir/* 
+rm -f $tmpdir/*
 
 # put header on lambda file
 # then computed weights to file
@@ -85,7 +76,7 @@ let "RETVAL+=$?"
 echo "exit status after making prediction,lambda files: $RETVAL"
 
 # clean up temporary directory
-rm -f $tmpdir/* 
+rm -f $tmpdir/*
 
 # now compile weights file
 rm -f $weightsfile
@@ -129,7 +120,7 @@ echo "exit status after making prediction, lambda, weights, and external predict
 
 
 # clean up temporary directory
-rm -f $tmpdir/* 
+rm -f $tmpdir/*
 
 # now it is safe to clean up scratch
 #rm -rf $outdir

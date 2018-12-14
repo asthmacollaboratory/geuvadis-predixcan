@@ -56,15 +56,10 @@ vcfdatasfx="PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.annotv2.genotypes"
 
 
 # script file paths
-eur_out_file="${geuvadis_rnaseqdir}/geuvadis.eur373.RPKM.invnorm.txt"
-yri_out_file="${geuvadis_rnaseqdir}/geuvadis.yri89.RPKM.invnorm.txt"
-teur_out_file="${geuvadis_rnaseqdir}/geuvadis.eur373.RPKM.invnom.transposed.txt"
-teur_out_file="${geuvadis_rnaseqdir}/geuvadis.eur373.RPKM.invnom.transposed.txt"
-eur_ids_out_file="${geuvadis_rnaseqdir}/geuvadis.eur373.ids.txt"
-yri_ids_out_file="${geuvadis_rnaseqdir}/geuvadis.yri373.ids.txt"
 mergelist="${geuvadis_genodir}/plink/geuvadis_mergelist_for_plink.txt"
 id_map_file="${geuvadis_genodir}/snp_ids/Phase1.Geuvadis_dbSnp137_idconvert.txt"
 
+### DO WE NEED THESE HERE???
 eur_ids_file="${datafiles_dir}/geuvadis.eur373.sampleids.txt"
 yri_ids_file="${datafiles_dir}/geuvadis.yri89.sampleids.txt"
 
@@ -91,17 +86,18 @@ mkdir -p ${vcfdir}
 mkdir -p ${plinkdir}
 
 
-# download genotype data
-for chr in $(seq 1 22); do
-    current_vcf_url="https://www.ebi.ac.uk/arrayexpress/files/E-GEUV-1/GEUVADIS.chr${chr}.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.annotv2.genotypes.vcf.gz"
-    wget ${current_vcf_url} -P ${vcfdir} 
-done
+## download genotype data
+#for chr in $(seq 1 22); do
+#    current_vcf_url="https://www.ebi.ac.uk/arrayexpress/files/E-GEUV-1/GEUVADIS.chr${chr}.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.annotv2.genotypes.vcf.gz"
+#    wget ${current_vcf_url} -P ${vcfdir} 
+#done
 
 
 # ensure that the VCFs are all bgzip'd and tabix'd
 for file in $(ls ${geuvadis_genodir}/vcf/${vcfdatapfx}.*.vcf.gz); do
-    mv -f $file backup.vcf;
-    $BCFTOOLS view --output-type z --threads $nthreads -o $file backup.vcf;
+    backup_vcf="${geuvadis_genodir}/vcf/backup.vcf"
+    mv -f $file ${backup_vcf}
+    $BCFTOOLS view --output-type z --threads $nthreads -o $file ${backup_vcf}
     ~/bin/htsfile $file;
     $BCFTOOLS index --tbi $file --threads $nthreads;
 done
@@ -147,7 +143,10 @@ for chr in $(seq 1 22); do
 
     # replace gEUVADIS SNP IDs with rsIDs 
     # this will read from the *backup* BIM file and clobber the *original* BIM 
-    $RSCRIPT $R_remap_snpids ${plinkout}.bim.backup ${id_map_file} ${plinkout}.bim
+    $RSCRIPT $R_remap_snpids \
+        --bim-file ${plinkout}.bim.backup \
+        --SNP-ID-file ${id_map_file} \
+        --output-file ${plinkout}.bim
 
 done
 
@@ -161,4 +160,4 @@ $PLINK \
     --out $plinkout \
     --threads $nthreads
 
-exit 0
+#exit 0

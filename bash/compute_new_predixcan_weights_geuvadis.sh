@@ -19,6 +19,7 @@
 
 # terminate script on error
 set -e
+set -u
 
 # parse command line arguments
 alpha=$1
@@ -59,6 +60,7 @@ glmnetdir="${rnaseqdir}/glmnet"
 logdir="${glmnetdir}/log"
 codedir="${MYHOME}/gala_sage/code"
 imputegenodir="${MYHOME}/gala_sage/genotypes/gEUVADIS"
+scratchdir="/scratch/kkeys"
 outdir_eur="/scratch/kkeys/${glmmethod}/genes/eur373"
 outdir_eur278="/scratch/kkeys/${glmmethod}/genes/eur278"
 outdir_yri="/scratch/kkeys/${glmmethod}/genes/yri89"
