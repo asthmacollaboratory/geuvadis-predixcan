@@ -49,7 +49,7 @@ resultsdir=${resultsdir}
 gctadir=${gctadir}
 imputegenodir=${imputegenodir}
 tmpdir=${tmpdir}
-qsub_variable_list="${qsub_variable_list}.logdir=${logdir},outdir=${outdir},resultssubdir=${resultssubdir},resultsdir=${resultsdir},gctadir=${gctadir},imputegenodir=${imputegenodir},tmpdir=${tmpdir}"
+qsub_variable_list="${qsub_variable_list},logdir=${logdir},outdir=${outdir},resultssubdir=${resultssubdir},resultsdir=${resultsdir},gctadir=${gctadir},imputegenodir=${imputegenodir},tmpdir=${tmpdir}"
 
 # add filepaths
 genelist=${genelist}

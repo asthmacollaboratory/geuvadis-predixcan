@@ -29,11 +29,13 @@
 # -- $ALPHA = "0.0", "0.5", or "1.0", used by glmnet to determine the training algorithm
 # ==========================================================================================
 
+
 # ==========================================================================================
 # BASH script settings
 # ==========================================================================================
 set -e  ## script will exit on error
 set -u  ## script will exit if it sees an uninitialized variable
+
 
 # ==========================================================================================
 # parse command line arguments
@@ -63,6 +65,7 @@ if [[ "$glmmethod" == "" ]]; then
     return 1;
 fi
 
+
 # ==========================================================================================
 # script variables
 # ==========================================================================================
@@ -75,12 +78,18 @@ BASH_schedule_eur278_to_fin="${thisdir}/schedule_eur278_to_fin.sh"
 BASH_schedule_eur278_to_yri="${thisdir}/schedule_eur278_to_yri.sh"
 BASH_define_variables="${thisdir}/../common/geuvadis_variables.sh"
 
+
+# ==============================================================================================================================
+# source variables 
+# ==============================================================================================================================
+
+# must first grab all of the variables for GEUVADIS analysis 
+source ${BASH_define_variables}
+
+
 # ==========================================================================================
 # start job scheduling script
 # ==========================================================================================
-
-# first grab all of the variables for GEUVADIS analysis 
-source ${BASH_define_variables}
 
 # -------------------- #
 # EUR373 to YRI 

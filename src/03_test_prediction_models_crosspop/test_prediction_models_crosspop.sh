@@ -45,11 +45,17 @@ if [[ "$glmmethod" == "" ]]; then
     return 1;
 fi
 
+
+# ==========================================================================================
+# script variables
+# ==========================================================================================
+BASH_define_variables="${commondir}/geuvadis_variables.sh"
+
 # ==============================================================================================================================
 # source variables 
 # ==============================================================================================================================
 
-source $SCRIPT_HEADER_WHERE_ARE_YOU
+source $BASH_define_variables
 
 # ==============================================================================================================================
 # cross-population training
@@ -124,7 +130,7 @@ for i in $(seq 0 4); do
     predictionfile_header="$(head -n 1 ${exprfile} | sed -e 's/,/\t/g')"
 
 
-    source $WHERE_IS_geuvadis_qsub_jobs.sh
+    source $BASH_schedule_jobs
 done
 
 # end script

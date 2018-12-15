@@ -25,37 +25,39 @@ ulimit -c 0 # user limits: -c covers the max size of core files created
 # ==========================================================================================
 
 # binaries
-PLINK=$PLINK
-Rscript=$Rscript
+PLINK=${PLINK}
+Rscript=${Rscript}
 
 # external scripts
-R_compute_new_weights=$R_compute_new_weights
-R_predict_new_pop=$R_predict_new_pop
+R_compute_new_weights=${R_compute_new_weights}
+R_predict_new_pop=${R_predict_new_pop}
 
 # directories
-logdir=$logdir
-outdir=$outdir
-gctadir=$gctadir
-imputegenodir=$imputegenodir
-resultsdir=$resultsdir
-resultssubdir=$resultssubdir
-tmpdir=$tmpdir
+logdir=${logdir}
+outdir=${outdir}
+gctadir=${gctadir}
+imputegenodir=${imputegenodir}
+resultsdir=${resultsdir}
+resultssubdir=${resultssubdir}
+tmpdir=${tmpdir}
 
 # file paths
-genelist=$genelist
-subjectids=$subjectids
-exprfile=$exprfile
-subjectids_altpop=$subjectids_altpop
+genelist=${genelist}
+subjectids=${subjectids}
+exprfile=${exprfile}
+subjectids_altpop=${subjectids_altpop}
 
 # other variables
-alpha=$alpha
-glmmethod=$glmmethod
-maf=$maf
-hwe=$hwe
-nthreads=$nthreads
-memory_limit_mb=$memory_limit_mb
-pop=$pop
-altpop=$altpop
+alpha=${alpha}
+glmmethod=${glmmethod}
+maf=${maf}
+hwe=${hwe}
+nthreads=${nthreads}
+memory_limit_mb=${memory_limit_mb}
+pop=${pop}
+altpop=${altpop}
+nfolds=${nfolds}
+seed=${seed}
 
 # ==========================================================================================
 # executable code 
@@ -71,8 +73,8 @@ echo "Host name: $(hostname)"
 # must subtract 1 from $SGE_TASK_ID to match correct gene 
 # in general, be mindful when indexing BASH arrays with SGE task IDs 
 i=$(expr ${SGE_TASK_ID} - 1)
-read -a genes <<< $(cat $genelist | cut -d " " -f 1)
-gene=${genes[$i]}
+read -a genes <<< $(cat ${genelist} | cut -d " " -f 1)
+gene=${genes[${i}]}
 
 echo "Preparing analysis of ${gene} in population ${pop}..."
 
@@ -80,7 +82,7 @@ echo "Preparing analysis of ${gene} in population ${pop}..."
 # make gene directory in case it doesn't exist
 genepath="${outdir}/${gene}"
 genopfx="${genepath}/${gene}"
-mkdir -p $genepath 
+mkdir -p ${genepath}
 
 # create file paths to PLINK output 
 rawpath="${genopfx}.raw"
@@ -99,16 +101,16 @@ predictionfile_samepop="${resultssubdir}/geuvadis_predictinto_${pop}_${glmmethod
 
 # make note of output file paths, useful for debugging
 echo "Will save output to the following files:"
-echo -e "\tweightsfile = $weightsfile"
-echo -e "\tpredictionfile = $predictionfile"
-echo -e "\tlambdafile = $lambdafile"
-echo -e "\tpredictionfile_altpop = $predictionfile_altpop"
+echo -e "\tweightsfile = ${weightsfile}"
+echo -e "\tpredictionfile = ${predictionfile}"
+echo -e "\tlambdafile = ${lambdafile}"
+echo -e "\tpredictionfile_altpop = ${predictionfile_altpop}"
 
 # parse info for current gene 
-mygeneinfo=$(grep $gene ${genelist})
-chr=$(echo $mygeneinfo | cut -f 2 -d " ")
-startpos=$(echo $mygeneinfo | cut -f 3 -d " ")
-endpos=$(echo $mygeneinfo | cut -f 4 -d " ")
+mygeneinfo=$(grep ${gene} ${genelist})
+chr=$(echo ${mygeneinfo} | cut -f 2 -d " ")
+startpos=$(echo ${mygeneinfo} | cut -f 3 -d " ")
+endpos=$(echo ${mygeneinfo} | cut -f 4 -d " ")
 
 # with $chr we can point to the correct BED/BIM/BAM files
 bedfile="${imputegenodir}/GEUVADIS.ALLCHR.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.annotv2.genotypes.rsq_0.8_maf_0.01_hwe_0.00001_geno_0.05"
@@ -117,7 +119,7 @@ bedfile="${imputegenodir}/GEUVADIS.ALLCHR.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.ann
 # this codes the dosage format required for glmnet
 # here we use the genome-wide GEUVADIS genotype data with rsIDs
 $PLINK \
-    --bfile $bedfile \
+    --bfile ${bedfile} \
     --chr ${chr} \
     --from-bp ${startpos} \
     --to-bp ${endpos} \
@@ -133,11 +135,21 @@ $PLINK \
 
 # call glmnet script
 # the method used depends on the alpha value: 
-# alpha="0.5" --> elastic net regression
-# alpha="1.0" --> LASSO regression
-# alpha="0.0" --> ridge regression
+# alpha = "0.5" --> elastic net regression
+# alpha = "1.0" --> LASSO regression
+# alpha = "0.0" --> ridge regression
 echo "starting R script to compute new GTEx weights..."
-$Rscript $R_compute_new_weights ${rawpath} ${exprfile} ${gene} ${predictionfile} ${lambdafile} ${alpha} ${weightsfile} ${bimfile}
+$Rscript $R_compute_new_weights \
+    --genotype-dosage-file ${rawpath} \
+    --expression-file ${exprfile} \
+    --gene-name ${gene} \
+    --prediction-output ${predictionfile} \
+    --lambda-output ${lambdafile} \
+    --alpha ${alpha} \
+    --beta-file ${weightsfile} \
+    --BIM-file ${bimfile} \
+    --num-folds ${nfolds} \
+    --random-seed ${seed}
 
 # query return value of previous command
 # will use this later to determine successful execution
@@ -165,7 +177,7 @@ $PLINK \
 # note the following commented PLINK options: why are they not used?
 # we want to use all possible SNPs from training pop
 # but genetic variation may not match that of testing pop
-# tricky to filter on same MAF/HWE thresholds as a result
+# tricky to filter on same MAF/HWE thresholds as a result since we may lose SNPs
 # to be safe, just include all possible SNPs
 #    --maf ${maf} \
 #    --hwe ${hwe} \
@@ -174,7 +186,11 @@ $PLINK \
 #    --to-bp ${endpos} \
 
 # predict from training pop to testing pop
-$Rscript $R_predict_new_pop ${weightsfile} ${rawpath_altpop} ${predictionfile_altpop} ${gene} 
+$Rscript $R_predict_new_pop \
+    --beta-file ${weightsfile} \
+    --genotype-dosage-file ${rawpath_altpop} \
+    --prediction-output ${predictionfile_altpop} \
+    --gene-name ${gene} 
 
 # query return value of previous command
 let "RETVAL+=$?"
@@ -182,7 +198,11 @@ let "RETVAL+=$?"
 # also perform prediction from training pop into itself
 # different from true out-of-sample populations but systematically same as before
 # want this to compare against quality of out-of-sample pops
-$Rscript $R_predict_new_pop ${weightsfile} ${rawpath} ${predictionfile_samepop} ${gene} 
+$Rscript $R_predict_new_pop \
+    --beta-file ${weightsfile} \
+    --genotype-dosage-file ${rawpath} \
+    --prediction-output ${predictionfile_samepop} \
+    --gene-name ${gene} 
 
 # query return value of previous command
 let "RETVAL+=$?"

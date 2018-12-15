@@ -16,10 +16,9 @@
 # ==============================================================================================================================
 # configure BASH 
 # ==============================================================================================================================
-
-# terminate script on error
-set -e
-set -u
+# these are used for debugging any undefined variables
+#set -e
+#set -u
 
 
 # ==============================================================================================================================
@@ -27,15 +26,17 @@ set -u
 # ==============================================================================================================================
 
 # script static directories
+thisdir="$(dirname $(readlink -f $0))"
+
 MYHOME="/netapp/home/kkeys"
-rnaseqdir="${MYHOME}/gala_sage/rnaseq"
-geuvadisdir="${rnaseqdir}/geuvadis"
-gctadir="${rnaseqdir}/gcta"
-bindir="${MYHOME}/bin"
-datadir="${rnaseqdir}/data"
-glmnetdir="${rnaseqdir}/glmnet"
+datadir="${thisdir}/../analysis/data"
+rnaseqdir="${datadir}/rnaseq"
+gctadir="${datadir}/gcta"
+resultsdir="${thisdir}/../analysis/results"
+glmnetdir="${resultsdir}/glmnet"
 logdir="${glmnetdir}/log"
 codedir="${MYHOME}/gala_sage/code"
+commondir="${thisdir}../common"
 imputegenodir="${MYHOME}/gala_sage/genotypes/gEUVADIS"
 
 scratchdir="/scratch/kkeys"
@@ -75,7 +76,7 @@ resultssubdir_tsii89="${resultsdir_tsi89}/results"
 
 tmpdir="${MYHOME}/tmp"
 
-crosspop_dir="${geuvadisdir}/crosspop"
+crosspop_dir="${rnaseqdir}/crosspop"
 
 # make output and results directories, in case they doesn't exist
 mkdir -p $outdir_eur
@@ -99,19 +100,19 @@ mkdir -p $tmpdir
 mkdir -p $crosspop_dir
 
 # filepaths 
-exprfile_eur="${geuvadisdir}/geuvadis.eur373.RPKM.invnorm.txt"
-exprfile_eur278="${geuvadisdir}/geuvadis.eur278.RPKM.invnorm.txt"
-exprfile_yri="${geuvadisdir}/geuvadis.yri89.RPKM.invnorm.txt"
-exprfile_fin="${geuvadisdir}/geuvadis.fin95.RPKM.invnorm.txt"
-phenofile_eur="${geuvadisdir}/geuvadis.eur373.RPKM.invnorm.pheno"
-phenofile_eur278="${geuvadisdir}/geuvadis.eur278.RPKM.invnorm.pheno"
-phenofile_yri="${geuvadisdir}/geuvadis.yri89.RPKM.invnorm.pheno"
-phenofile_fin="${geuvadisdir}/geuvadis.fin95.RPKM.invnorm.pheno"
-genelist="${geuvadisdir}/human_ens_GRCh37_genechrpos_plusmin500kb.txt"
-subjectids_eur="${geuvadisdir}/geuvadis.eur373.sampleids.txt"
-subjectids_yri="${geuvadisdir}/geuvadis.yri89.sampleids.txt"
-subjectids_fin="${geuvadisdir}/geuvadis.fin95.sampleids.txt"
-subjectids_eur278="${geuvadisdir}/geuvadis.eur278.sampleids.txt"
+exprfile_eur="${rnaseqdir}/geuvadis.eur373.RPKM.invnorm.txt"
+exprfile_eur278="${rnaseqdir}/geuvadis.eur278.RPKM.invnorm.txt"
+exprfile_yri="${rnaseqdir}/geuvadis.yri89.RPKM.invnorm.txt"
+exprfile_fin="${rnaseqdir}/geuvadis.fin95.RPKM.invnorm.txt"
+phenofile_eur="${rnaseqdir}/geuvadis.eur373.RPKM.invnorm.pheno"
+phenofile_eur278="${rnaseqdir}/geuvadis.eur278.RPKM.invnorm.pheno"
+phenofile_yri="${rnaseqdir}/geuvadis.yri89.RPKM.invnorm.pheno"
+phenofile_fin="${rnaseqdir}/geuvadis.fin95.RPKM.invnorm.pheno"
+genelist="${rnaseqdir}/human_ens_GRCh37_genechrpos_plusmin500kb.txt"
+subjectids_eur="${rnaseqdir}/geuvadis.eur373.sampleids.txt"
+subjectids_yri="${rnaseqdir}/geuvadis.yri89.sampleids.txt"
+subjectids_fin="${rnaseqdir}/geuvadis.fin95.sampleids.txt"
+subjectids_eur278="${rnaseqdir}/geuvadis.eur278.sampleids.txt"
 predictionfile_eur="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictions.txt"
 predictionfile_eur278="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictions.txt"
 predictionfile_yri="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictions.txt"
@@ -156,16 +157,17 @@ h2file_yri="${resultsdir_yri}/geuvadis_h2_yri89.txt"
 h2file_null_yri="${resultsdir_yri}/geuvadis_h2_null_yri89.txt"
 
 # external script locations
-R_compute_new_weights="${codedir}/geuvadis_glmnet_compute_new_weights.R"
+R_compute_new_weights="${commondir}/geuvadis_compute_new_weights.R"
+R_postprocess_weights="${commondir}/geuvadis_postprocess_weights.R"
 R_compute_r2="${codedir}/geuvadis_gtex_compute_r2.R"
-R_glmnet_postprocess="${codedir}/geuvadis_glmnet_postprocess.R"
 R_subsample_eur="${codedir}/geuvadis_subsample_eur373.R" 
 R_predict_new_pop="${codedir}/geuvadis_predict_in_altpop.R"
 R_subsample_pop="${codedir}/geuvadis_subsample_onepop.R" 
 
-BASH_compute_weights="${codedir}/qsub_geuvadis_compute_weights.sh"
-BASH_collect_weights="${codedir}/qsub_geuvadis_collect_weights.sh"
-BASH_postprocess_weights="${codedir}/qsub_geuvadis_postprocess_weights.sh"
+BASH_schedule_jobs="${commondir}/geuvadis_qsub_jobs.sh"
+BASH_compute_weights="${commondir}/qsub_geuvadis_compute_weights.sh"
+BASH_collect_weights="${commondir}/qsub_geuvadis_collect_weights.sh"
+BASH_postprocess_weights="${commondir}/qsub_geuvadis_postprocess_weights.sh"
 
 # assumes that FIESTA is cloned into $HOME/git
 # edit this if necessary
@@ -185,8 +187,7 @@ nthreads=1
 memory_limit="2G"
 memory_limit_mb="2000" # manually coordinate this with $memory_limit!!!
 scratch_memory="2G"
-#h_rt="12:00:00"
-h_rt="06:00:00"
+h_rt="12:00:00"
 discard_ratio="0.5" # desired min ratio of samples with nonmissing LOOCV predictions, used in postprocessing, e.g. 0.5 = 50%
 nsamples_eur="373"
 nsamples_eur278="278"
@@ -194,6 +195,7 @@ nsamples_yri="89"
 nfolds_eur="10"
 nfolds_eur278="10"
 nfolds_yri="89"
+seed=2018
 
 ### parameters for EUR89
 # set variables to population-specific parameters
@@ -202,7 +204,7 @@ nfolds_yri="89"
 h_rt="23:59:59"
 pop="eur89" 
 nresample="100"
-eur89_dir="${geuvadisdir}/eur89"
+eur89_dir="${rnaseqdir}/eur89"
 nfolds_eur89=${nfolds_yri} ## ensure that the fold number matches the number used for training AFR 
 nsamples_eur89="89"
 

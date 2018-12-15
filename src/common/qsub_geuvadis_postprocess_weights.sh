@@ -13,7 +13,7 @@
 glmmethod=${glmmethod}
 weightsfile=${weightsfile}
 glmnetdir=${glmnetdir}
-newweightsfile=${newweightsfile}
+#newweightsfile=${newweightsfile}
 Rscript=${Rscript}
 R_glmnet_postprocess=${R_glmnet_postprocess}
 discard_ratio=${discard_ratio}
@@ -34,7 +34,20 @@ altpop_out_genelm_file=${altpop_out_genelm_file}
 echo -e "Start timestamp: $(date)"
 
 # postprocess the weights file
-$Rscript $R_glmnet_postprocess $weightsfile $newweightsfile $discard_ratio $num_pred_file $nsamples $predictionfile $exprfile $out_lm_file $out_genelm_file $predictionfile_altpop $altpop_exprfile $altpop_out_lm_file $altpop_out_genelm_file
+#$Rscript $R_glmnet_postprocess $weightsfile $newweightsfile $discard_ratio $num_pred_file $nsamples $predictionfile $exprfile $out_lm_file $out_genelm_file $predictionfile_altpop $altpop_exprfile $altpop_out_lm_file $altpop_out_genelm_file
+$Rscript $R_glmnet_postprocess \
+    --beta-file ${weightsfile} \
+    --discard-ratio ${$discard_ratio} \
+    --num-predictions-file ${num_pred_file} \
+    --num_samples ${nsamples} \
+    --prediction-file ${predictionfile} \
+    --expression-file ${exprfile} \
+    --out-lm-file ${out_lm_file} \
+    --out-genelm-file ${out_genelm_file} \
+    --test-pop-prediction-file ${predictionfile_altpop} \
+    --test-pop-expression-file ${altpop_exprfile} \
+    --test-pop-out-lm-file ${altpop_out_lm_file} \
+    --test-pop-out-genelm-file ${altpop_out_genelm_file}
 
 # query return value of previous command
 RETVAL=$?
@@ -42,7 +55,7 @@ RETVAL=$?
 # if return value is not 0, then previous command did not exit correctly
 # create a status file notifying of error
 # in contrary case, notify of success
-if [ "$RETVAL" -ne "0" ];
+if [ "${RETVAL}" -ne "0" ];
 then
     echo "ERROR" > ${logdir}/status.${glmmethod}.postprocess.${pop}
 else
