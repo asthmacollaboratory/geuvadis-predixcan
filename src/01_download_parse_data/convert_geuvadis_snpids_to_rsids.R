@@ -1,7 +1,7 @@
 ##!/usr/bin/env Rscript --vanilla
 
-supressMessages(library(data.table))
-supressMessages(library(methods))
+suppressMessages(library(data.table))
+suppressMessages(library(methods))
 suppressMessages(library(optparse))
 
 # parse command line variables
@@ -24,9 +24,9 @@ option_list = list(
         c("-o", "--output-file"),
         type    = "character",
         default = NULL,
-        help    = "Path to file for saving results."
+        help    = "Path to file for saving results.",
         metavar = "character"
-    ),
+    )
 )
 
 opt_parser = OptionParser(option_list = option_list)

@@ -104,21 +104,21 @@ cat("Parsed options:\n\n")
 print(opt)
 
 # input file paths
-rnaseq.file       = opt$rnaseq_data_file 
-sample.ids.file   = opt$sample_ids_file 
-eur.sampleid.file = opt$EUR_sampleIDs_file 
-yri.sampleid.file = opt$YRI_sampleIDs_file 
-eur.out.file      = file.path(opt$output_directory, opt$EUR_rnaseq_out_file) 
-yri.out.file      = file.path(opt$output_directory, opt$YRI_rnaseq_out_file) 
-teur.out.file     = file.path(opt$output_directory, opt$transposed_EUR_rnaseq_out_file) 
-tyri.out.file     = file.path(opt$output_directory, opt$transposed_YRI_rnaseq_out_file) 
-eur.ids.file      = file.path(opt$output_directory, opt$EUR_IDs_out_file) 
-yri.ids.file      = file.path(opt$output_directory, opt$YRI_IDs_out_file) 
+rnaseq.file       = opt$rnaseq_data_file
+sample.ids.file   = opt$sample_ids_file
+eur.sampleid.file = opt$EUR_sampleIDs_file
+yri.sampleid.file = opt$YRI_sampleIDs_file
+eur.out.file      = file.path(opt$output_directory, opt$EUR_rnaseq_out_file)
+yri.out.file      = file.path(opt$output_directory, opt$YRI_rnaseq_out_file)
+teur.out.file     = file.path(opt$output_directory, opt$transposed_EUR_rnaseq_out_file)
+tyri.out.file     = file.path(opt$output_directory, opt$transposed_YRI_rnaseq_out_file)
+eur.ids.file      = file.path(opt$output_directory, opt$EUR_IDs_out_file)
+yri.ids.file      = file.path(opt$output_directory, opt$YRI_IDs_out_file)
 
 # load from file
 rnaseq.data     = fread(rnaseq.file, header = TRUE)              # load normalized RPKMs for gEUVADIS
 eur.sample.ids  = fread(eur.sampleid.file, header = FALSE)[[1]]  # IDs for EUR, we want these as a *vector*
-yri.sample.ids  = fread(yri.sampleid.file, header = FALSE)[[1]]  # same deal for YRI 
+yri.sample.ids  = fread(yri.sampleid.file, header = FALSE)[[1]]  # same deal for YRI
 
 # discard duplicate gene ID and chr, position info
 # rename gene ID to just "Gene"
@@ -155,12 +155,12 @@ fwrite(x = yri, file = yri.out.file, col.names = TRUE, quote = FALSE, sep = "\t"
 # involves transposing data tables via melting and recasting
 # do first for eur and then for yri
 eur.melt = melt(eur, id.vars = "Gene", variable.name = "IID", value.name = "Expression")
-teur     = dcast(data = eur.melt, formula = IID ~ Gene, value.var = "Expression") 
+teur     = dcast(data = eur.melt, formula = IID ~ Gene, value.var = "Expression")
 setkey(teur, IID)
 setorder(teur, IID)
 
 yri.melt = melt(yri, id.vars = "Gene", variable.name = "IID", value.name = "Expression")
-tyri     = dcast(data = yri.melt, formula = IID ~ Gene, value.var = "Expression") 
+tyri     = dcast(data = yri.melt, formula = IID ~ Gene, value.var = "Expression")
 setkey(tyri, IID)
 setorder(tyri, IID)
 

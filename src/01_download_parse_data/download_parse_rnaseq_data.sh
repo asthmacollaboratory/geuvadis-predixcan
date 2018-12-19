@@ -15,7 +15,7 @@ set -e  ## script will exit on error
 set -u  ## script will exit if it sees an uninitialized variable
 
 # ==========================================================================================
-# directories 
+# directories
 # ==========================================================================================
 thisdir="$(dirname $(readlink -f $0))"
 
@@ -30,19 +30,19 @@ datafiles_dir="${thisdir}/../../datafiles"
 # ==========================================================================================
 # these are paths to static executables
 # note that these are GUESSED with "whereis". this is a *fragile* way to set these variables!
-# "whereis" can return an empty result. the guess also uses the first result, which may not be desired. 
+# "whereis" can return an empty result. the guess also uses the first result, which may not be desired.
 # a better solution, if it is available, is to point these variables directly to desired binaries
 R=$(whereis R | awk '{print $2}')
 RSCRIPT=$(whereis Rscript | awk '{print $2}')
 
 # ==========================================================================================
-# external scripts 
+# external scripts
 # ==========================================================================================
 R_parse_geu_expr="${thisdir}/parse_geuvadis_expression_data.R"
 
 
 # ==========================================================================================
-# file paths, variables, URLs 
+# file paths, variables, URLs
 # ==========================================================================================
 # script file paths
 all_rnaseq_data_file="${geuvadis_rnaseqdir}/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt"
@@ -61,7 +61,7 @@ rnaseq_gzfile="${geuvadis_rnaseqdir}/GD462.GeneQuantRPKM.50FN.samplename.resk10.
 
 
 # ==========================================================================================
-# executable code 
+# executable code
 # ==========================================================================================
 
 # first make directories, if they do not already exist
@@ -70,8 +70,8 @@ mkdir -p ${datadir}
 mkdir -p ${geuvadis_rnaseqdir}
 
 ## download expression data
-#wget ${rnaseq_url} -P ${geuvadis_rnaseqdir}
-#gzip --stdout --decompress ${rnaseq_gzfile} > ${all_rnaseq_data_file}
+wget ${rnaseq_url} -P ${geuvadis_rnaseqdir}
+gzip --stdout --decompress ${rnaseq_gzfile} > ${all_rnaseq_data_file}
 
 # everything required for parsing gene expression data is in one script
 $RSCRIPT $R_parse_geu_expr \
