@@ -8,7 +8,7 @@
 # for reference, see:
 # -- Gamazon et al. (2015) Nature Genetics
 # -- https://github.com/hakyimlab/PrediXcan/tree/master/Paper-Scripts
-# 
+#
 # The GEUVADIS populations used here are:
 # 1. EUR373, which includes all 373 unrelated Europeans from GEUVADIS
 # 2. EUR278, which includes all 278 non-Finnish Europeans
@@ -80,10 +80,10 @@ BASH_define_variables="${thisdir}/../common/geuvadis_variables.sh"
 
 
 # ==============================================================================================================================
-# source variables 
+# source variables
 # ==============================================================================================================================
 
-# must first grab all of the variables for GEUVADIS analysis 
+# must first grab all of the variables for GEUVADIS analysis
 source ${BASH_define_variables}
 
 
@@ -92,12 +92,12 @@ source ${BASH_define_variables}
 # ==========================================================================================
 
 # -------------------- #
-# EUR373 to YRI 
+# EUR373 to YRI
 
 source ${BASH_schedule_eur373_to_yri}
 
 # -------------------- #
-# YRI to EUR373 
+# YRI to EUR373
 
 source ${BASH_schedule_yri_to_eur373}
 

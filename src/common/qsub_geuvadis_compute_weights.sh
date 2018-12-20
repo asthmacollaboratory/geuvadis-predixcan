@@ -36,7 +36,6 @@ R_predict_new_pop=${R_predict_new_pop}
 logdir=${logdir}
 outdir=${outdir}
 gctadir=${gctadir}
-imputegenodir=${imputegenodir}
 resultsdir=${resultsdir}
 resultssubdir=${resultssubdir}
 tmpdir=${tmpdir}
@@ -46,6 +45,7 @@ genelist=${genelist}
 subjectids=${subjectids}
 exprfile=${exprfile}
 subjectids_altpop=${subjectids_altpop}
+bedfile_pfx=${bedfile_pfx}
 
 # other variables
 alpha=${alpha}
@@ -112,14 +112,12 @@ chr=$(echo ${mygeneinfo} | cut -f 2 -d " ")
 startpos=$(echo ${mygeneinfo} | cut -f 3 -d " ")
 endpos=$(echo ${mygeneinfo} | cut -f 4 -d " ")
 
-# with $chr we can point to the correct BED/BIM/BAM files
-bedfile="${imputegenodir}/GEUVADIS.ALLCHR.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.annotv2.genotypes.rsq_0.8_maf_0.01_hwe_0.00001_geno_0.05"
 
 # create a PLINK RAW file
 # this codes the dosage format required for glmnet
 # here we use the genome-wide GEUVADIS genotype data with rsIDs
 $PLINK \
-    --bfile ${bedfile} \
+    --bfile ${bedfile_pfx} \
     --chr ${chr} \
     --from-bp ${startpos} \
     --to-bp ${endpos} \
@@ -164,7 +162,7 @@ cat ${weightsfile} | cut -f 3 | grep "rs" | sort | uniq > $snps_to_extract
 # this codes the dosage format required for glmnet
 # here we use the genome-wide GEUVADIS genotype data with rsIDs
 $PLINK \
-    --bfile $bedfile \
+    --bfile ${bedfile_pfx} \
     --recode A \
     --make-bed \
     --out ${genopfx_altpop} \

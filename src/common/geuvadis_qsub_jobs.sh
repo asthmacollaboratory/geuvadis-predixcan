@@ -47,9 +47,8 @@ outdir=${outdir}
 resultssubdir=${resultssubdir}
 resultsdir=${resultsdir}
 gctadir=${gctadir}
-imputegenodir=${imputegenodir}
 tmpdir=${tmpdir}
-qsub_variable_list="${qsub_variable_list},logdir=${logdir},outdir=${outdir},resultssubdir=${resultssubdir},resultsdir=${resultsdir},gctadir=${gctadir},imputegenodir=${imputegenodir},tmpdir=${tmpdir}"
+qsub_variable_list="${qsub_variable_list},logdir=${logdir},outdir=${outdir},resultssubdir=${resultssubdir},resultsdir=${resultsdir},gctadir=${gctadir},tmpdir=${tmpdir}"
 
 # add filepaths
 genelist=${genelist}
@@ -57,7 +56,8 @@ subjectids=${subjectids}
 exprfile=${exprfile}
 subjectids_altpop=${subjectids_altpop}
 phenofile=${phenofile}
-qsub_variable_list="${qsub_variable_list},genelist=${genelist},subjectids=${subjectids},exprfile=${exprfile},subjectids_altpop=${subjectids_altpop},phenofile=${phenofile}"
+bedfile_pfx=${bedfile_pfx}
+qsub_variable_list="${qsub_variable_list},genelist=${genelist},subjectids=${subjectids},exprfile=${exprfile},subjectids_altpop=${subjectids_altpop},phenofile=${phenofile},bedfile=${bedfile_pfx}"
 
 # add numeric or string variables
 alpha=${alpha}
@@ -95,13 +95,12 @@ h_rt="06:00:00"
 
 # build variable list
 # start with directories
-glmnetdir=${glmnetdir}
 logdir=${logdir}
 outdir=${outdir}
 resultsdir=${resultsdir}
 resultssubdir=${resultssubdir}
 tmpdir=${tmpdir}
-qsub_variable_list="glmnetdir=${glmnetdir},logdir=${logdir},outdir=${outdir},resultsdir=${resultsdir},resultssubdir=${resultssubdir},tmpdir=${tmpdir}"
+qsub_variable_list="logdir=${logdir},outdir=${outdir},resultsdir=${resultsdir},resultssubdir=${resultssubdir},tmpdir=${tmpdir}"
 
 # add file paths}
 weightsfile=${weightsfile}
@@ -145,9 +144,8 @@ R_glmnet_postprocess=${R_glmnet_postprocess}
 qsub_variable_list="${qsub_variable_list},R_glmnet_postprocess=${R_glmnet_postprocess}"
 
 # directories
-glmnetdir=${glmnetdir}
 logdir=${logdir}
-qsub_variable_list="${qsub_variable_list},glmnetdir=${glmnetdir},logdir=${logdir}"
+qsub_variable_list="${qsub_variable_list},logdir=${logdir}"
 
 # file paths
 weightsfile=${weightsfile}
