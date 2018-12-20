@@ -49,10 +49,12 @@ fi
 # ==========================================================================================
 # script variables
 # ==========================================================================================
+
 BASH_define_variables="${commondir}/geuvadis_variables.sh"
+subsample_size="${nsamples_yri}"
 
 # ==============================================================================================================================
-# source variables 
+# source variables
 # ==============================================================================================================================
 
 source $BASH_define_variables
@@ -60,7 +62,7 @@ source $BASH_define_variables
 # ==============================================================================================================================
 # cross-population training
 # ==============================================================================================================================
-#
+
 # in this section we will train from CEU, GBR, TSI, FIN, YRI into all other populations
 # for example, we train in CEU and predict into other four populations
 #
@@ -71,7 +73,7 @@ source $BASH_define_variables
 # -- GBR = 96
 # -- TSI = 93
 #
-# thus, we must downsample to 89 samples in each training population 
+# thus, we must downsample to 89 samples in each training population
 
 # arrays of pops + their respective sample sizes
 pops=("ceu" "tsi" "gbr" "fin" "yri")
@@ -81,29 +83,36 @@ popsizes=("92" "93" "96" "95" "89")
 h_rt="23:59:59"
 
 # loop over pops
-for i in $(seq 0 4); do 
+for i in $(seq 0 4); do
 
-    # set variables for current pop 
-    # train in "pop", test in "notpop" 
-    pop="${pops[$i]}"  ## note absence of sample size; will add subsample size 89 to this later 
+    # set variables for current pop
+    # train in "pop", test in "notpop"
+    pop="${pops[$i]}"  ## note absence of sample size; will add subsample size 89 to this later
     notpop="not${pop}"
     popsize="${popsizes[$i]}"
     altpop="${notpop}"
     subjectids="${geuvadisdir}/geuvadis.${pop}${popsize}.sampleids.txt"
 
     # first subsample the population in question
-    $Rscript $R_subsample_pop $pop $exprfile_eur $exprfile_yri $subjectids $crosspop_dir
+    $Rscript $R_subsample_pop \
+        --population-name ${pop} \
+        --EUR-RNA-file ${exprfile_eur} \
+        --AFR-RNA-file ${exprfile_yri} \
+        --sample-file ${subjectids} \
+        --output-directory ${crosspop_dir} \
+        --seed ${seed} \
+        --subsample-size ${subsample_size}
 
     # rename population with correct subsampled population size
-    pop="${pop}89"
+    pop="${pop}${subsample_size}"
 
     outdir="${scratchdir}/${glmmethod}/genes/${pop}"
     resultsdir="${resultsdir_crosspop}/${pop}"
     resultssubdir="${resultsdir}/results"
 
-    mkdir -p $outdir
-    mkdir -p $resultsdir
-    mkdir -p $resultssubdir
+    mkdir -p ${outdir}
+    mkdir -p ${resultsdir}
+    mkdir -p ${resultssubdir}
 
     subjectids="${crosspop_dir}/geuvadis.${pop}.sampleids.txt"
     exprfile="${crosspop_dir}/geuvadis.${pop}.RPKM.invnorm.txt"
@@ -112,13 +121,13 @@ for i in $(seq 0 4); do
     weightsfile="${resultsdir}/geuvadis_${glmmethod}_${pop}_weights.txt"
     predictionfile_samepop="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictinto_${pop}.txt"
     num_pred_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_numpred.txt"
-    nsamples="89"
+    nsamples=${subsample_size}
     out_lm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_lm_predvmeas_results.txt"
     newweightsfile="${resultsdir}/geuvadis_${glmmethod}_${pop}_weights_noNA.txt"
     out_genelm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_genelm_predvmeas_results.txt"
     h2file="${resultsdir}/geuvadis_h2_${pop}.txt"
     h2file_null="${resultsdir}/geuvadis_h2_null_${pop}.txt"
-    nfolds=$nfolds_yri
+    nfolds=${nfolds_yri}
     phenofile="${crosspop_dir}/geuvadis.${pop}.RPKM.invnorm.pheno"
 
     altpop_exprfile="${crosspop_dir}/geuvadis.${notpop}.RPKM.invnorm.txt"

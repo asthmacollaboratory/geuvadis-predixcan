@@ -14,7 +14,7 @@
 # ==============================================================================================================================
 
 # ==============================================================================================================================
-# configure BASH 
+# configure BASH
 # ==============================================================================================================================
 # these are used for debugging any undefined variables
 #set -e
@@ -22,13 +22,12 @@
 
 
 # ==============================================================================================================================
-# directories 
+# directories
 # ==============================================================================================================================
 
 # script static directories
 thisdir="$(dirname $(readlink -f $0))"
 
-MYHOME="/netapp/home/kkeys"
 analysisdir="${thisdir}/../../analysis/"
 datadir="${analysisdir}/data"
 datafiles_dir="${thisdir}/../../datafiles"
@@ -41,7 +40,7 @@ commondir="${thisdir}/../common"
 
 # on UCSF QB3, the scratch directory is a fixed path
 # change this to wherever SGE results can be stored temporarily
-# it should have plenty of space, say >100Gb 
+# it should have plenty of space, say >100Gb
 scratchdir="/scratch/kkeys"
 
 outdir_eur="${scratchdir}/${glmmethod}/genes/eur373"
@@ -85,29 +84,29 @@ crosspop_dir="${rnaseqdir}/crosspop"
 
 # make output and results directories, in case they doesn't exist
 # do this before defining filepaths and paths to binaries
-mkdir -p $outdir_eur
-mkdir -p $outdir_eur278
-mkdir -p $outdir_yri
-mkdir -p $resultsdir_eur
-mkdir -p $resultsdir_eur278
-mkdir -p $resultsdir_yri
-mkdir -p $resultsdir_ceu
-mkdir -p $resultsdir_gbr
-mkdir -p $resultsdir_fin
-mkdir -p $resultsdir_tsi
-mkdir -p $resultssubdir_eur
-mkdir -p $resultssubdir_eur278
-mkdir -p $resultssubdir_yri
-mkdir -p $resultssubdir_ceu
-mkdir -p $resultssubdir_gbr
-mkdir -p $resultssubdir_fin
-mkdir -p $resultssubdir_tsi
-mkdir -p $tmpdir
-mkdir -p $crosspop_dir
+mkdir -p ${outdir_eur}
+mkdir -p ${outdir_eur278}
+mkdir -p ${outdir_yri}
+mkdir -p ${resultsdir_eur}
+mkdir -p ${resultsdir_eur278}
+mkdir -p ${resultsdir_yri}
+mkdir -p ${resultsdir_ceu}
+mkdir -p ${resultsdir_gbr}
+mkdir -p ${resultsdir_fin}
+mkdir -p ${resultsdir_tsi}
+mkdir -p ${resultssubdir_eur}
+mkdir -p ${resultssubdir_eur278}
+mkdir -p ${resultssubdir_yri}
+mkdir -p ${resultssubdir_ceu}
+mkdir -p ${resultssubdir_gbr}
+mkdir -p ${resultssubdir_fin}
+mkdir -p ${resultssubdir_tsi}
+mkdir -p ${tmpdir}
+mkdir -p ${crosspop_dir}
 
 
 # ==============================================================================================================================
-# filepaths 
+# filepaths
 # ==============================================================================================================================
 
 bedfile_pfx="${genodir}/GEUVADIS.ALLCHR.PH1PH2_465.IMPFRQFILT_BIALLELIC_PH.annotv2.genotypes.rsq_0.8_maf_0.01_hwe_0.00001_geno_0.05"
@@ -186,7 +185,7 @@ h2file_null_yri="${resultsdir_yri}/geuvadis_h2_null_yri89.txt"
 R_compute_new_weights="${commondir}/geuvadis_compute_new_weights.R"
 R_postprocess_weights="${commondir}/geuvadis_postprocess_weights.R"
 R_predict_new_pop="${commondir}/geuvadis_predict_in_altpop.R"
-R_subsample_pop="${commondir}/geuvadis_subsample_onepop.R" 
+R_subsample_pop="${commondir}/geuvadis_subsample_onepop.R"
 
 BASH_schedule_jobs="${commondir}/geuvadis_qsub_jobs.sh"
 BASH_compute_weights="${commondir}/qsub_geuvadis_compute_weights.sh"
@@ -194,7 +193,7 @@ BASH_collect_weights="${commondir}/qsub_geuvadis_collect_weights.sh"
 BASH_postprocess_weights="${commondir}/qsub_geuvadis_postprocess_weights.sh"
 
 # assumes that FIESTA is cloned into $HOME/git
-# edit this if necessary
+# edit this as needed
 PYTHON_fiesta="${HOME}/Git/albi/fiesta.py"
 
 # binaries
@@ -227,7 +226,7 @@ predictionfile_header_yri="$(head -n 1 ${exprfile_yri89})"
 predictionfile_header_eur278="$(head -n 1 ${exprfile_eur278})"
 
 # ==============================================================================================================================
-# start script 
+# start script
 # ==============================================================================================================================
 
 # -------------------- #
@@ -235,14 +234,14 @@ echo "Start time: $(date)"
 
 # -------------------- #
 # make necessary output directories
-if [[ ! -d "$logdir" ]]; then mkdir -p $logdir; fi
+if [[ ! -d "${logdir}" ]]; then mkdir -p ${logdir}; fi
 
 
 # how many genes are in this list?
-# remember that this file has a header so line count is off by 1 
+# remember that this file has a header so line count is off by 1
 # another way to get correct $nGenes is to follow wc with
 # > let "nGenes=nGenes-1"
-nGenes=$(wc -l $genelist | cut -f 1 -d " ")
+nGenes=$(wc -l ${genelist} | cut -f 1 -d " ")
 
 # uncomment next line for testing and debugging the pipeline
 ###nGenes=2
