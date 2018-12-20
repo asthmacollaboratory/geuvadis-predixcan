@@ -12,8 +12,7 @@
 # script variables
 glmmethod=${glmmethod}
 weightsfile=${weightsfile}
-glmnetdir=${glmnetdir}
-#newweightsfile=${newweightsfile}
+###newweightsfile=${newweightsfile}
 Rscript=${Rscript}
 R_glmnet_postprocess=${R_glmnet_postprocess}
 discard_ratio=${discard_ratio}
@@ -34,7 +33,7 @@ altpop_out_genelm_file=${altpop_out_genelm_file}
 echo -e "Start timestamp: $(date)"
 
 # postprocess the weights file
-#$Rscript $R_glmnet_postprocess $weightsfile $newweightsfile $discard_ratio $num_pred_file $nsamples $predictionfile $exprfile $out_lm_file $out_genelm_file $predictionfile_altpop $altpop_exprfile $altpop_out_lm_file $altpop_out_genelm_file
+###$Rscript $R_glmnet_postprocess $weightsfile $newweightsfile $discard_ratio $num_pred_file $nsamples $predictionfile $exprfile $out_lm_file $out_genelm_file $predictionfile_altpop $altpop_exprfile $altpop_out_lm_file $altpop_out_genelm_file
 $Rscript $R_glmnet_postprocess \
     --beta-file ${weightsfile} \
     --discard-ratio ${$discard_ratio} \

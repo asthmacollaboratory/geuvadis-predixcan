@@ -22,7 +22,6 @@ ulimit -c 0
 
 # script variables from qsub
 weightsfile=${weightsfile}
-glmnetdir=${glmnetdir}
 glmmethod=${glmmethod}
 logdir=${logdir}
 lambdafile=${lambdafile}
@@ -43,7 +42,6 @@ h2file_null=${h2file_null}
 echo "Saving results to the following locations:"
 echo -e "\tresultsfile = ${resultsfile}"
 echo -e "\tweightsfile = ${weightsfile}"
-echo -e "\tglmnetdir = ${glmnetdir}"
 echo -e "\tglmmethod = ${glmmethod}"
 echo -e "\tlogdir = ${logdir}"
 
