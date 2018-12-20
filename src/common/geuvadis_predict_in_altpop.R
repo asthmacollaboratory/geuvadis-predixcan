@@ -1,7 +1,9 @@
 ##!/usr/bin/env Rscript --vanilla
 
+suppressMessages(library(methods))
 suppressMessages(library(data.table))
 suppressMessages(library(dplyr))
+suppressMessages(library(optparse))
 
 # parse command line arguments
 option_list = list(

@@ -69,7 +69,7 @@ echo "Host name: $(hostname)"
 
 # parse current gene
 # NOTA BENE: in general BASH arrays are 0-indexed while SGE tasks are 1-indexed
-# since $genelist lacks a header the genes are essentially 1-indexed
+# since $genelist lacks a header then $genelist is essentially 0-indexed
 # must subtract 1 from $SGE_TASK_ID to match correct gene 
 # in general, be mindful when indexing BASH arrays with SGE task IDs 
 i=$(expr ${SGE_TASK_ID} - 1)

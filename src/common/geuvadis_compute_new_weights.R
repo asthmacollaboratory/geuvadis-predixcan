@@ -17,6 +17,7 @@
 suppressMessages(library(methods))
 suppressMessages(library(glmnet))
 suppressMessages(library(data.table))
+suppressMessages(library(optparse))
 
 # error tracking
 options(show.error.locations = TRUE)
