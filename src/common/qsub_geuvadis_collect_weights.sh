@@ -44,6 +44,7 @@ echo -e "\tresultsfile = ${resultsfile}"
 echo -e "\tweightsfile = ${weightsfile}"
 echo -e "\tglmmethod = ${glmmethod}"
 echo -e "\tlogdir = ${logdir}"
+echo -e "\tpredictionfile_header = ${predictionfile_header}"
 
 # put header on prediction file
 # then append results to file

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ==============================================================================================================================
+# ==========================================================================================
 # copyright Asthma Collboratory (2018)
 # coded by Kevin L. Keys
 #
@@ -7,61 +7,35 @@
 #
 # Call:
 #
-# ./compute_new_predixcan_weights_geuvadis.sh $ALPHA
-#
-# where
-# -- $ALPHA = "0.0", "0.5", or "1.0", used by glmnet to determine the training algorithm
-# ==============================================================================================================================
+# ./compute_new_predixcan_weights_geuvadis.sh
+# ==========================================================================================
 
-# ==============================================================================================================================
-# parse command line arguments
-# ==============================================================================================================================
 
-# terminate script on error
+# ==========================================================================================
+# BASH script settings
+# ==========================================================================================
 set -e
 set -u
 
-# parse command line arguments
-alpha=$1
+# ==========================================================================================
+# source variables
+# ==========================================================================================
 
-# set method based on alpha
-# only checks the three admissible values for alpha
-glmmethod=""
-if [[ "$alpha" == "1.0" ]]; then
-    glmmethod="lasso";
-fi
-if [[ "$alpha" == "0.5" ]]; then
-    glmmethod="elasticnet";
-fi
-if [[ "$alpha" == "0.0" ]]; then
-    glmmethod="ridge";
-fi
+thisdir="$(dirname $(readlink -f $0))"
+BASH_define_variables="${thisdir}/../common/geuvadis_variables.sh"
 
-# make sure that glmmethod was set
-# $glmmethod is empty if alpha was not given an acceptable value
-if [[ "$glmmethod" == "" ]]; then
-    echo -e "usage:\n\tsource compute_new_predixcan_weights.sh \$ALPHA\n"
-    echo -e "where \$ALPHA = {0.0, 0.5, 1.0} (required)\n"
-    return 1;
-fi
-
+source $BASH_define_variables
 
 # ==========================================================================================
 # script variables
 # ==========================================================================================
 
-BASH_define_variables="${commondir}/geuvadis_variables.sh"
 subsample_size="${nsamples_yri}"
 
-# ==============================================================================================================================
-# source variables
-# ==============================================================================================================================
 
-source $BASH_define_variables
-
-# ==============================================================================================================================
+# ==========================================================================================
 # cross-population training
-# ==============================================================================================================================
+# ==========================================================================================
 
 # in this section we will train from CEU, GBR, TSI, FIN, YRI into all other populations
 # for example, we train in CEU and predict into other four populations
@@ -91,7 +65,7 @@ for i in $(seq 0 4); do
     notpop="not${pop}"
     popsize="${popsizes[$i]}"
     altpop="${notpop}"
-    subjectids="${geuvadisdir}/geuvadis.${pop}${popsize}.sampleids.txt"
+    subjectids="${datafiles_dir}/geuvadis.${pop}${popsize}.sampleids.txt"
 
     # first subsample the population in question
     $Rscript $R_subsample_pop \

@@ -13,7 +13,7 @@
 # ==============================================================================================================================
 
 # ==============================================================================================================================
-# 0. variables for this script only 
+# 0. variables for this script only
 # ==============================================================================================================================
 
 # job names
@@ -57,7 +57,7 @@ exprfile=${exprfile}
 subjectids_altpop=${subjectids_altpop}
 phenofile=${phenofile}
 bedfile_pfx=${bedfile_pfx}
-qsub_variable_list="${qsub_variable_list},genelist=${genelist},subjectids=${subjectids},exprfile=${exprfile},subjectids_altpop=${subjectids_altpop},phenofile=${phenofile},bedfile=${bedfile_pfx}"
+qsub_variable_list="${qsub_variable_list},genelist=${genelist},subjectids=${subjectids},exprfile=${exprfile},subjectids_altpop=${subjectids_altpop},phenofile=${phenofile},bedfile_pfx=${bedfile_pfx}"
 
 # add numeric or string variables
 alpha=${alpha}
@@ -69,17 +69,18 @@ memory_limit_mb=${memory_limit_mb}
 pop=${pop}
 altpop=${altpop}
 nfolds=${nfolds}
-qsub_variable_list="${qsub_variable_list},alpha=${alpha},glmmethod=${glmmethod},maf=${maf},hwe=${hwe},nthreads=${nthreads},memory_limit_mb=${memory_limit_mb},pop=${pop},altpop=${altpop},nfolds=${nfolds}"
+seed=${seed}
+qsub_variable_list="${qsub_variable_list},alpha=${alpha},glmmethod=${glmmethod},maf=${maf},hwe=${hwe},nthreads=${nthreads},memory_limit_mb=${memory_limit_mb},pop=${pop},altpop=${altpop},nfolds=${nfolds},seed=${seed}"
 
 # execute
-qsub -N ${build_models} \
-     -v ${qsub_variable_list} \
+qsub -N "${build_models}" \
+     -v "${qsub_variable_list}" \
      -t 1-${nGenes} \
-     -e ${logdir} \
-     -o ${logdir} \
-     -l mem_free=${memory_limit} \
-     -l scratch=${scratch_memory} \
-     -l h_rt=${h_rt} \
+     -e "${logdir}" \
+     -o "${logdir}" \
+     -l mem_free="${memory_limit}" \
+     -l scratch="${scratch_memory}" \
+     -l h_rt="${h_rt}" \
      ${BASH_compute_weights}
 
 
@@ -117,16 +118,16 @@ glmmethod=${glmmethod}
 pop=${pop}
 altpop=${altpop}
 predictionfile_header=${predictionfile_header}
-qsub_variable_list="${qsub_variable_list},glmmethod=${glmmethod},pop=${pop},altpop=${altpop},predictionfile_header=${predictionfile_header}"
+qsub_variable_list="${qsub_variable_list},glmmethod=${glmmethod},pop=${pop},altpop=${altpop},predictionfile_header=\"${predictionfile_header}\""
 
 # execute
-qsub -N ${collect_weights} \
-    -hold_jid ${build_models} \ 
-    -v ${qsub_variable_list} \
-    -o ${logdir} \
-    -e ${logdir} \
-    -l mem_free=${memory_limit} \
-    -l h_rt=${h_rt} \
+qsub -N "${collect_weights}" \
+    -hold_jid "${build_models}" \
+    -v "${qsub_variable_list}" \
+    -o "${logdir}" \
+    -e "${logdir}" \
+    -l mem_free="${memory_limit}" \
+    -l h_rt="${h_rt}" \
     ${BASH_collect_weights}
 
 # ==============================================================================================================================
@@ -140,8 +141,8 @@ Rscript=${Rscript}
 qsub_variable_list="Rscript=${Rscript}"
 
 # external scripts
-R_glmnet_postprocess=${R_glmnet_postprocess}
-qsub_variable_list="${qsub_variable_list},R_glmnet_postprocess=${R_glmnet_postprocess}"
+R_postprocess_weights=${R_postprocess_weights}
+qsub_variable_list="${qsub_variable_list},R_postprocess_weights=${R_postprocess_weights}"
 
 # directories
 logdir=${logdir}
@@ -170,8 +171,8 @@ qsub_variable_list="${qsub_variable_list},glmmethod=${glmmethod},pop=${pop},nsam
 
 # execute
 qsub -N ${postprocess_results} \
-    -hold_jid ${build_models},${collect_weights} \ 
-    -v ${qsub_variable_list} \ 
+    -hold_jid ${build_models},${collect_weights} \
+    -v ${qsub_variable_list} \
     -o ${logdir} \
     -e ${logdir} \
     -l mem_free=${memory_limit} \

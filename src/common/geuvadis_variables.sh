@@ -3,14 +3,9 @@
 # copyright Asthma Collboratory (2018)
 # coded by Kevin L. Keys
 #
-# This script computes PrediXcan weights from gEUVADIS transcriptome data.
+# This script contains all analysis-wide variables used in testing crosspopulation transcriptome imputation
+# with GEUVADIS genotype-expression data.
 #
-# Call:
-#
-# ./compute_new_predixcan_weights_geuvadis.sh $ALPHA
-#
-# where
-# -- $ALPHA = "0.0", "0.5", or "1.0", used by glmnet to determine the training algorithm
 # ==============================================================================================================================
 
 # ==============================================================================================================================
@@ -28,7 +23,7 @@
 # script static directories
 thisdir="$(dirname $(readlink -f $0))"
 
-analysisdir="${thisdir}/../../analysis/"
+analysisdir="${thisdir}/../../analysis"
 datadir="${analysisdir}/data"
 datafiles_dir="${thisdir}/../../datafiles"
 rnaseqdir="${datadir}/rnaseq"
@@ -37,6 +32,10 @@ gctadir="${datadir}/gcta"
 resultsdir="${analysisdir}/results"
 logdir="${resultsdir}/log"
 commondir="${thisdir}/../common"
+
+# directories that follow rely on glmnet settings
+glmmethod="elasticnet"
+alpha="0.5"
 
 # on UCSF QB3, the scratch directory is a fixed path
 # change this to wherever SGE results can be stored temporarily
@@ -197,7 +196,8 @@ BASH_postprocess_weights="${commondir}/qsub_geuvadis_postprocess_weights.sh"
 PYTHON_fiesta="${HOME}/Git/albi/fiesta.py"
 
 # binaries
-PLINK=$(whereis plink | awk '{print $2}')
+#PLINK=$(whereis plink | awk '{print $2}')
+PLINK="${HOME}/bin/plink" ## QB3 doesn't have system-wide PLINK
 Rscript=$(whereis Rscript | awk '{print $2}')
 GCTA=$(whereis gcta64| awk '{print $2}')
 PYTHON=$(whereis python2.7| awk '{print $2}')
@@ -222,7 +222,7 @@ seed=2018
 
 # need headers for prediction files
 predictionfile_header_eur373="$(head -n 1 ${exprfile_eur})"
-predictionfile_header_yri="$(head -n 1 ${exprfile_yri89})"
+predictionfile_header_yri="$(head -n 1 ${exprfile_yri})"
 predictionfile_header_eur278="$(head -n 1 ${exprfile_eur278})"
 
 # ==============================================================================================================================
@@ -244,4 +244,4 @@ if [[ ! -d "${logdir}" ]]; then mkdir -p ${logdir}; fi
 nGenes=$(wc -l ${genelist} | cut -f 1 -d " ")
 
 # uncomment next line for testing and debugging the pipeline
-###nGenes=2
+nGenes=2

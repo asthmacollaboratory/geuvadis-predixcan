@@ -77,11 +77,12 @@ print(opt)
 
 # parse command-line arguments
 pop             = opt$population_name    # put a name and sample size to the pop, e.g. YRI89
-eur.rna.path    = opt$EUR_RNA_path       # where are the RNA data for the Europeans? 
-afr.rna.path    = opt$AFR_RNA_path       # where are the RNA data for the Africans? 
-pop.sample.path = opt$sample_path        # where is the PLINK-formatted sample file 
+eur.rna.path    = opt$EUR_RNA_file       # where are the RNA data for the Europeans? 
+afr.rna.path    = opt$AFR_RNA_file       # where are the RNA data for the Africans? 
+pop.sample.path = opt$sample_file        # where is the PLINK-formatted sample file 
 output.dir      = opt$output_directory   # where will pop subsample output go?
 seed            = opt$random_seed        # VERY IMPORTANT FOR REPRODUCIBILITY
+sample.size     = opt$subsample_size     # make sure that this doesn't exceed the actual sample size 
 
 # set seed
 set.seed(seed)  # ALSO VERY IMPORTANT FOR REPRODUCIBILITY
@@ -106,15 +107,15 @@ pop.sample = pop.sample.all[pop.sample.all %in% allsamples]
 cat("length(pop.sample) = ", length(pop.sample), "\n")
 
 # each subsampled set needs its own file paths
-pop.rna.path        = file.path(output.dir, paste0("geuvadis.", pop, "89.RPKM.invnorm.txt"))
-pop.pheno.path      = file.path(output.dir, paste0("geuvadis.", pop, "89.RPKM.invnorm.pheno"))
-pop.subjectids.path = file.path(output.dir, paste0("geuvadis.", pop, "89.sampleids.txt"))
+pop.rna.path        = file.path(output.dir, paste0("geuvadis.", pop, sample.size, ".RPKM.invnorm.txt"))
+pop.pheno.path      = file.path(output.dir, paste0("geuvadis.", pop, sample.size, ".RPKM.invnorm.pheno"))
+pop.subjectids.path = file.path(output.dir, paste0("geuvadis.", pop, sample.size, ".sampleids.txt"))
 
 # this variable will house the "Gene" identifiers and a smattering of sample column names
 # can use this to (consistently) pull data from eur373.rna
 # will also use this to construct files needed for PLINK
 
-new.colnames = c("Gene", sort(pop.sample[sample.int(length(pop.sample), 89)]))
+new.colnames = c("Gene", sort(pop.sample[sample.int(length(pop.sample), sample.size)]))
 
 # subset the data
 pop.rna = rna[, ..new.colnames]

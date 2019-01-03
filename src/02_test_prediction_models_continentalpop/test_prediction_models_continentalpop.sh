@@ -23,47 +23,16 @@
 #
 # Call:
 #
-# ./test_prediction_models_continentalpop.sh $ALPHA
-#
-# where
-# -- $ALPHA = "0.0", "0.5", or "1.0", used by glmnet to determine the training algorithm
+# ./test_prediction_models_continentalpop.sh
 # ==========================================================================================
 
 
 # ==========================================================================================
 # BASH script settings
 # ==========================================================================================
+
 set -e  ## script will exit on error
 set -u  ## script will exit if it sees an uninitialized variable
-
-
-# ==========================================================================================
-# parse command line arguments
-# ==========================================================================================
-
-# parse command line arguments
-alpha=$1
-
-# set method based on alpha
-# only checks the three admissible values for alpha
-glmmethod=""
-if [[ "$alpha" == "1.0" ]]; then
-    glmmethod="lasso";
-fi
-if [[ "$alpha" == "0.5" ]]; then
-    glmmethod="elasticnet";
-fi
-if [[ "$alpha" == "0.0" ]]; then
-    glmmethod="ridge";
-fi
-
-# make sure that glmmethod was set
-# $glmmethod is empty if alpha was not given an acceptable value
-if [[ "$glmmethod" == "" ]]; then
-    echo -e "usage:\n\tsource compute_new_predixcan_weights.sh \$ALPHA\n"
-    echo -e "where \$ALPHA = {0.0, 0.5, 1.0} (required)\n"
-    return 1;
-fi
 
 
 # ==========================================================================================
@@ -79,9 +48,9 @@ BASH_schedule_eur278_to_yri="${thisdir}/schedule_eur278_to_yri.sh"
 BASH_define_variables="${thisdir}/../common/geuvadis_variables.sh"
 
 
-# ==============================================================================================================================
+# ==========================================================================================
 # source variables
-# ==============================================================================================================================
+# ==========================================================================================
 
 # must first grab all of the variables for GEUVADIS analysis
 source ${BASH_define_variables}
