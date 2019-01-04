@@ -57,7 +57,8 @@ popsizes=("92" "93" "96" "95" "89")
 h_rt="23:59:59"
 
 # loop over pops
-for i in $(seq 0 4); do
+#for i in $(seq 0 4); do
+for i in $(seq 0 0); do
 
     # set variables for current pop
     # train in "pop", test in "notpop"

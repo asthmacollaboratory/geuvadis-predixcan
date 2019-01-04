@@ -36,7 +36,7 @@ echo -e "Start timestamp: $(date)"
 ###$Rscript $R_glmnet_postprocess $weightsfile $newweightsfile $discard_ratio $num_pred_file $nsamples $predictionfile $exprfile $out_lm_file $out_genelm_file $predictionfile_altpop $altpop_exprfile $altpop_out_lm_file $altpop_out_genelm_file
 $Rscript $R_glmnet_postprocess \
     --beta-file ${weightsfile} \
-    --discard-ratio ${$discard_ratio} \
+    --discard-ratio ${discard_ratio} \
     --num-predictions-file ${num_pred_file} \
     --num_samples ${nsamples} \
     --prediction-file ${predictionfile} \

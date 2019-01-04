@@ -112,6 +112,11 @@ chr=$(echo ${mygeneinfo} | cut -f 2 -d " ")
 startpos=$(echo ${mygeneinfo} | cut -f 3 -d " ")
 endpos=$(echo ${mygeneinfo} | cut -f 4 -d " ")
 
+echo "Information for current gene:"
+echo -e "\tname: ${gene}"
+echo -e "\tchr: ${chr}"
+echo -e "\tstart: ${startpos}"
+echo -e "\tend: ${endpos}"
 
 # create a PLINK RAW file
 # this codes the dosage format required for glmnet
@@ -128,8 +133,8 @@ $PLINK \
     --out ${genopfx} \
     --threads ${nthreads} \
     --memory ${memory_limit_mb} \
-    --keep ${subjectids} \
-    --silent ## turn this off first when debugging
+    --keep ${subjectids} #\
+    #--silent ## turn this off first when debugging
 
 # call glmnet script
 # the method used depends on the alpha value:
@@ -144,7 +149,7 @@ $Rscript $R_compute_new_weights \
     --prediction-output ${predictionfile} \
     --lambda-output ${lambdafile} \
     --alpha ${alpha} \
-    --beta-file ${weightsfile} \
+    --beta-output ${weightsfile} \
     --BIM-file ${bimfile} \
     --num-folds ${nfolds} \
     --random-seed ${seed}
