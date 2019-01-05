@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript --vanilla
-# ==============================================================================================================================
+# ==========================================================================================
 # copyright Asthma Collaboratory (2018)
 # coded by Kevin L. Keys
 #
@@ -8,11 +8,11 @@
 # heavily modified from original PrediXcan script by Heather E. Wheeler (2015-02-02)
 # https://github.com/hakyim/PrediXcan/blob/master/Paper-Scripts/Heather/DGN-calc-weights/01_imputedDGN-WB_CV_elasticNet.r
 # in Github repo, see runscripts/run_01_imputedDGN-WB_CV_elasticNet_chr*sh and qsub.txt for tarbell job submission scripts
-# ==============================================================================================================================
+# ==========================================================================================
 
-# ==============================================================================================================================
+# ==========================================================================================
 # load libraries
-# ==============================================================================================================================
+# ==========================================================================================
 
 suppressMessages(library(methods))
 suppressMessages(library(glmnet))
@@ -123,9 +123,9 @@ compute.new.weights = function(){
     alpha  = as.numeric(alpha)
     nfolds = as.numeric(nfolds)
 
-    # ==========================================================================================================================
+    # ==========================================================================================
     # Directories & Variables
-    # ==========================================================================================================================
+    # ==========================================================================================
 
     # which gene are we analyzing?
     cat(paste0("Building predictive model for gene ", gene.name, " with ", nfolds, "-fold crossvalidation.\n"))
@@ -320,9 +320,9 @@ compute.new.weights = function(){
     return()
 }
 
-# ==============================================================================================================================
+# ==========================================================================================
 # Executable script code
-# ==============================================================================================================================
+# ==========================================================================================
 
 # timestamp
 cat(paste("Begin estimating prediction weights at date and time ", Sys.time(), "\n", sep = "") )
@@ -334,6 +334,8 @@ compute.new.weights()
 # note that glmnet may complain whenever its Fortran routine executes early on the lambda path
 # that is ok
 # if it complains about missing Fortran routines, then take them seriously
+# the latter warnings indicate a missing glmnet installation, a mismatched Rscript/glmnet version,
+# or an unexpected version of Rscript (e.g. 3.5 vs. 3.4)
 cat("any warnings?\n")
 warnings()
 

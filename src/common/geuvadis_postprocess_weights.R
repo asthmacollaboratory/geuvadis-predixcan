@@ -1,17 +1,17 @@
 ##!/usr/bin/env Rscript --vanilla
 
-# ==============================================================================================================================
+# ==========================================================================================
 # load libraries
-# ==============================================================================================================================
+# ==========================================================================================
 suppressMessages(library(methods))
 suppressMessages(library(dplyr))
 suppressMessages(library(data.table))
 suppressMessages(library(optparse))
 
 
-# ==============================================================================================================================
+# ==========================================================================================
 # parse command line arguments 
-# ==============================================================================================================================
+# ==========================================================================================
 
 option_list = list(
     make_option(
@@ -53,7 +53,7 @@ option_list = list(
         c("-r", "--expression-file"),
         type    = "character",
         default = NULL,
-        help    = "File with table of gene expression measurements in the training population.",
+        help    = "Table of gene expression measurements in the training population.",
         metavar = "character"
     ),
     make_option(
@@ -123,10 +123,11 @@ altpop.out.genelm.file = opt$test_pop_out_genelm_file
 discard.ratio = as.numeric(discard.ratio)
 num.samples   = as.numeric(num.samples)
 
-# ==============================================================================================================================
+# ==========================================================================================
 # subroutines
-# ==============================================================================================================================
+# ==========================================================================================
 
+# possible to rewrite with dplyr, purrr, and broom?
 compute.gene.lm = function(data, out.file, genes = unique(sort(data$Gene))){
     ngenes = length(genes)
     out.matrix     = matrix(NA, ngenes, 4)
@@ -148,9 +149,9 @@ compute.gene.lm = function(data, out.file, genes = unique(sort(data$Gene))){
     return()
 }
 
-# ==============================================================================================================================
+# ==========================================================================================
 # script code 
-# ==============================================================================================================================
+# ==========================================================================================
 
 # open weights file
 x = fread(weightsfile)
@@ -195,28 +196,10 @@ geuvadis.predictions.sub = geuvadis.predictions[geuvadis.predictions$Gene %in% n
 cat("subsetting expression file to well-predicted genes...\n") 
 geuvadis.rnaseq.sub = geuvadis.rnaseq[geuvadis.rnaseq$Gene %in% geuvadis.predictions.sub$Gene,]
 
-# sort the genes before transposing
-# could probably do this more stably with melt + dcast...?
-cat("sorting and transposing expressions...\n")
-#setorder(geuvadis.rnaseq.sub, Gene)
-#trnaseq = data.table(t(geuvadis.rnaseq.sub[,-c(1)]))
-#colnames(trnaseq) = geuvadis.rnaseq.sub$Gene
-#trnaseq = cbind(colnames(geuvadis.rnaseq.sub)[-1], trnaseq)
-#colnames(trnaseq)[1] = "SubjectID"
-setorder(geuvadis.rnaseq.sub, Gene)
-print(geuvadis.rnaseq.sub[1:5,1:5])
-geuvadis.rnaseq.melt = melt(geuvadis.rnaseq.sub, id.vars = "Gene", variable.name = "SubjectID", value.name = "value")
-head(geuvadis.rnaseq.melt)
-trnaseq = dcast(geuvadis.rnaseq.melt, SubjectID ~ Gene)
-
-# put column names and a column of sample names
-# make sure to sort by sample
-setorder(trnaseq, SubjectID)
-
 # melt the predicted and measured expression data.tables
 cat("melting both prediction and measured expression data tables...\n")
-pred.melted   = melt(geuvadis.predictions.sub, id.vars = c("Gene"))
-rnaseq.melted = melt(geuvadis.rnaseq.sub, id.vars = "Gene")
+pred.melted   = melt(geuvadis.predictions.sub, id.vars = "Gene", variable.name = "SubjectID", value.name = "Predicted_Expr")
+rnaseq.melted = melt(geuvadis.rnaseq.sub, id.vars = "Gene", variable.name = "SubjectID", value.name = "Measured_Expr")
 
 # standardize their column names too
 colnames(pred.melted)   = c("Gene", "SubjectID", "Predicted_Expr")

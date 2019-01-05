@@ -14,8 +14,10 @@
 # ==========================================================================================
 # BASH script settings
 # ==========================================================================================
-set -e
-set -u
+
+set -o errexit # set -e, script will exit on error
+set -o nounset # set -u, script will exit if it sees an uninitialized variable
+#set -o xtrace  # set -x, script will track which command is currently running
 
 # ==========================================================================================
 # source variables
