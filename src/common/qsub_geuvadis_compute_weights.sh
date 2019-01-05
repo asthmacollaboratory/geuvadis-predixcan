@@ -15,9 +15,10 @@
 # ==========================================================================================
 # BASH script settings
 # ==========================================================================================
-set -e      # script will exit on error
-set -u      # script will exit if it sees an uninitialized variable
-ulimit -c 0 # user limits: -c covers the max size of core files created
+set -o errexit # set -e, script will exit on error
+set -o nounset # set -u, script will exit if it sees an uninitialized variable
+set -o xtrace  # set -x, script will track which command is currently running
+#ulimit -c 0 # user limits: -c covers the max size of core files created
 
 
 # ==========================================================================================
@@ -72,7 +73,7 @@ echo "Host name: $(hostname)"
 # since $genelist lacks a header then $genelist is essentially 0-indexed
 # must subtract 1 from $SGE_TASK_ID to match correct gene
 # in general, be mindful when indexing BASH arrays with SGE task IDs
-i=$(expr ${SGE_TASK_ID} - 1)
+i=$(expr ${SGE_TASK_ID} - 1) || true  ## guard against exit status 0
 read -a genes <<< $(cat ${genelist} | cut -d " " -f 1)
 gene=${genes[${i}]}
 
@@ -121,6 +122,7 @@ echo -e "\tend: ${endpos}"
 # create a PLINK RAW file
 # this codes the dosage format required for glmnet
 # here we use the genome-wide GEUVADIS genotype data with rsIDs
+echo "Subsetting genotypes in ${gene} for training pop ${pop}..."
 $PLINK \
     --bfile ${bedfile_pfx} \
     --chr ${chr} \
@@ -141,7 +143,7 @@ $PLINK \
 # alpha = "0.5" --> elastic net regression
 # alpha = "1.0" --> LASSO regression
 # alpha = "0.0" --> ridge regression
-echo "starting R script to compute new GTEx weights..."
+echo "starting R script to compute new prediction weights..."
 $Rscript $R_compute_new_weights \
     --genotype-dosage-file ${rawpath} \
     --expression-file ${exprfile} \
@@ -159,6 +161,7 @@ $Rscript $R_compute_new_weights \
 RETVAL=$?
 
 # get list of SNPs to subset in alternate population
+echo "Constructing list of SNPs to extract in testing population ${altpop}..."
 snps_to_extract="${tmpdir}/snps_to_extract_${altpop}_${gene}.txt"
 cat ${weightsfile} | cut -f 3 | grep "rs" | sort | uniq > $snps_to_extract
 
@@ -166,6 +169,7 @@ cat ${weightsfile} | cut -f 3 | grep "rs" | sort | uniq > $snps_to_extract
 # create a PLINK RAW file, but this time for the testing population
 # this codes the dosage format required for glmnet
 # here we use the genome-wide GEUVADIS genotype data with rsIDs
+echo "Subsetting genotypes in ${gene} for the testing population ${altpop}..."
 $PLINK \
     --bfile ${bedfile_pfx} \
     --recode A \
@@ -189,6 +193,7 @@ $PLINK \
 #    --to-bp ${endpos} \
 
 # predict from training pop to testing pop
+echo "Predicting into the testing population ${altpop}..."
 $Rscript $R_predict_new_pop \
     --beta-file ${weightsfile} \
     --genotype-dosage-file ${rawpath_altpop} \
@@ -196,11 +201,12 @@ $Rscript $R_predict_new_pop \
     --gene-name ${gene}
 
 # query return value of previous command
-let "RETVAL+=$?"
+let "RETVAL+=$?" || true  ## need " || true" to satisfy "set -e"
 
 # also perform prediction from training pop into itself
 # different from true out-of-sample populations but systematically same as before
 # want this to compare against quality of out-of-sample pops
+echo "Predicting into the training population..."
 $Rscript $R_predict_new_pop \
     --beta-file ${weightsfile} \
     --genotype-dosage-file ${rawpath} \
@@ -208,7 +214,7 @@ $Rscript $R_predict_new_pop \
     --gene-name ${gene}
 
 # query return value of previous command
-let "RETVAL+=$?"
+let "RETVAL+=$?" || true
 
 # if return value is not 0, then previous command did not exit correctly
 # create a status file notifying of error

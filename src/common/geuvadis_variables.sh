@@ -207,10 +207,10 @@ maf="0.01"
 hwe="0.0001"
 geno="0.03"
 nthreads=1
-memory_limit="2G"
-memory_limit_mb="2000" # manually coordinate this with $memory_limit!!!
+memory_limit="5G"
+memory_limit_mb="5000" # manually coordinate this with $memory_limit!!!
 scratch_memory="2G"
-h_rt="12:00:00"
+h_rt="23:59:59"
 discard_ratio="0.5" # desired min ratio of samples with nonmissing LOOCV predictions, used in postprocessing, e.g. 0.5 = 50%
 nsamples_eur="373"
 nsamples_eur278="278"

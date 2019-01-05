@@ -9,36 +9,62 @@
 # coded by Kevin L. Keys
 # ==========================================================================================
 
-# script variables
-glmmethod=${glmmethod}
-weightsfile=${weightsfile}
-###newweightsfile=${newweightsfile}
+
+# ==========================================================================================
+# BASH script settings
+# ==========================================================================================
+set -o errexit # set -e, script will exit on error
+set -o nounset # set -u, script will exit if it sees an uninitialized variable
+set -o xtrace  # set -x, script will track which command is currently running
+#ulimit -c 0 # user limits: -c covers the max size of core files created
+
+
+# ==========================================================================================
+# script variables (passed from QSUB command)
+# ==========================================================================================
+
+# binaries
 Rscript=${Rscript}
-R_glmnet_postprocess=${R_glmnet_postprocess}
-discard_ratio=${discard_ratio}
-num_pred_file=${num_pred_file}
-nsamples=${nsamples}
-predictionfile=${predictionfile}
-exprfile=${exprfile}
-out_lm_file=${out_lm_file}
-out_genelm_file=${out_genelm_file}
+
+# external scripts
+R_postprocess_weights=${R_postprocess_weights}
+
+# directories
 logdir=${logdir}
-pop=${pop}
+
+# file paths
+weightsfile=${weightsfile}
+num_pred_file=${num_pred_file}
 predictionfile_altpop=${predictionfile_altpop}
 altpop_exprfile=${altpop_exprfile}
 altpop_out_lm_file=${altpop_out_lm_file}
 altpop_out_genelm_file=${altpop_out_genelm_file}
+predictionfile=${predictionfile}
+exprfile=${exprfile}
+out_lm_file=${out_lm_file}
+out_genelm_file=${out_genelm_file}
 
-# output start time
-echo -e "Start timestamp: $(date)"
+# other variables
+glmmethod=${glmmethod}
+pop=${pop}
+nsamples=${nsamples}
+discard_ratio=${discard_ratio}
+
+
+# ==========================================================================================
+# executable code
+# ==========================================================================================
+
+# start by noting current date, time, and process hostname
+echo "Date: $(date)"
+echo "Host name: $(hostname)"
 
 # postprocess the weights file
-###$Rscript $R_glmnet_postprocess $weightsfile $newweightsfile $discard_ratio $num_pred_file $nsamples $predictionfile $exprfile $out_lm_file $out_genelm_file $predictionfile_altpop $altpop_exprfile $altpop_out_lm_file $altpop_out_genelm_file
-$Rscript $R_glmnet_postprocess \
+$Rscript $R_postprocess_weights \
     --beta-file ${weightsfile} \
     --discard-ratio ${discard_ratio} \
     --num-predictions-file ${num_pred_file} \
-    --num_samples ${nsamples} \
+    --num-samples ${nsamples} \
     --prediction-file ${predictionfile} \
     --expression-file ${exprfile} \
     --out-lm-file ${out_lm_file} \

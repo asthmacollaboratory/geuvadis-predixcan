@@ -36,18 +36,11 @@ option_list = list(
         metavar = "character"
     ),
     make_option(
-        c("-ns", "--num-samples-file"),
-        type    = "character",
-        default = NULL,
-        help    = "File where predictions from glmnet will be saved.",
-        metavar = "character"
-    ),
-    make_option(
         c("-s", "--num-samples"),
-        type    = "character",
+        type    = "integer",
         default = NULL,
         help    = "Number of samples in the training set.",
-        metavar = "character"
+        metavar = "integer"
     ),
     make_option(
         c("-p", "--prediction-file"),
@@ -109,12 +102,14 @@ option_list = list(
 opt_parser = OptionParser(option_list = option_list)
 opt = parse_args(opt_parser, convert_hyphens_to_underscores = TRUE)
 
+cat("Parsed options:\n")
+print(opt)
+
 # parse command line arguments
 weightsfile            = opt$beta_file 
-#new.weightsfile        = args[2]
-discard.ratio          = opt$discard_ratio 
+discard.ratio          = as.double(opt$discard_ratio) 
 num.pred.file          = opt$num_predictions_file 
-num.samples            = opt$num_samples 
+num.samples            = as.integer(opt$num_samples) 
 prediction.file        = opt$prediction_file
 exprfile               = opt$expression_file 
 out.lm.file            = opt$out_lm_file 
@@ -203,11 +198,16 @@ geuvadis.rnaseq.sub = geuvadis.rnaseq[geuvadis.rnaseq$Gene %in% geuvadis.predict
 # sort the genes before transposing
 # could probably do this more stably with melt + dcast...?
 cat("sorting and transposing expressions...\n")
+#setorder(geuvadis.rnaseq.sub, Gene)
+#trnaseq = data.table(t(geuvadis.rnaseq.sub[,-c(1)]))
+#colnames(trnaseq) = geuvadis.rnaseq.sub$Gene
+#trnaseq = cbind(colnames(geuvadis.rnaseq.sub)[-1], trnaseq)
+#colnames(trnaseq)[1] = "SubjectID"
 setorder(geuvadis.rnaseq.sub, Gene)
-trnaseq = data.table(t(geuvadis.rnaseq.sub[,-c(1)]))
-colnames(trnaseq) = geuvadis.rnaseq.sub$Gene
-trnaseq = cbind(colnames(geuvadis.rnaseq.sub)[-1], trnaseq)
-colnames(trnaseq)[1] = "SubjectID"
+print(geuvadis.rnaseq.sub[1:5,1:5])
+geuvadis.rnaseq.melt = melt(geuvadis.rnaseq.sub, id.vars = "Gene", variable.name = "SubjectID", value.name = "value")
+head(geuvadis.rnaseq.melt)
+trnaseq = dcast(geuvadis.rnaseq.melt, SubjectID ~ Gene)
 
 # put column names and a column of sample names
 # make sure to sort by sample

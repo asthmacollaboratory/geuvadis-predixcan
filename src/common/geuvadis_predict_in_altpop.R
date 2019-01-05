@@ -40,6 +40,10 @@ option_list = list(
 opt_parser = OptionParser(option_list = option_list)
 opt = parse_args(opt_parser, convert_hyphens_to_underscores = TRUE)
 
+
+cat("Parsed options:\n\n")
+print(opt)
+
 weightsfile      = opt$beta_file 
 geno.altpop.file = opt$genotype_dosage_file 
 altpop.pred.file = opt$prediction_output 
@@ -77,3 +81,5 @@ altpop.pred      = geno.altpop.sub[,.(IID, Prediction_into_Altpop)]
 altpop.pred$Gene = gene
 altpop.pred      = altpop.pred[,.(Gene, IID, Prediction_into_Altpop)]
 fwrite(x = altpop.pred, file = altpop.pred.file, row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "\t") 
+
+cat("Prediction for ", gene, " complete.\n")
