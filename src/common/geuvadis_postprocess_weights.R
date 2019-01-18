@@ -97,6 +97,27 @@ option_list = list(
         default = NULL,
         help    = "Output file for saving a table of linear modeling results for each gene in the testing population.",
         metavar = "character"
+    ),
+    make_option(
+        c("-Tp", "--train-pop-prediction-file"),
+        type    = "character",
+        default = NULL,
+        help    = "File with predictions for the training population.",
+        metavar = "character"
+    ),
+    make_option(
+        c("-Tol", "--train-pop-out-lm-file"),
+        type    = "character",
+        default = NULL,
+        help    = "Output file for saving linear modeling results across genes in the training population.",
+        metavar = "character"
+    ),
+    make_option(
+        c("-Tog", "--train-pop-out-genelm-file"),
+        type    = "character",
+        default = NULL,
+        help    = "Output file for saving a table of linear modeling results for each gene in the training population.",
+        metavar = "character"
     )
 )
 opt_parser = OptionParser(option_list = option_list)
@@ -118,6 +139,9 @@ altpop.pred.file       = opt$test_pop_prediction_file
 altpop.exprfile        = opt$test_pop_expression_file 
 altpop.out.lm.file     = opt$test_pop_out_lm_file 
 altpop.out.genelm.file = opt$test_pop_out_genelm_file 
+samepop.pred.file       = opt$train_pop_prediction_file
+samepop.out.lm.file     = opt$train_pop_out_lm_file
+samepop.out.genelm.file = opt$train_pop_out_genelm_file
 
 # ensure that numeric arguments are actually numbers
 discard.ratio = as.numeric(discard.ratio)
@@ -237,13 +261,25 @@ colnames(altpop.predictions) = c("Gene", "SubjectID", "Predicted_Expr")
 altpop.rnapred = merge(altpop.expr.melt, altpop.predictions, by = c("Gene", "SubjectID"))
 
 # first model: regress measured, predicted expression in all (gene, subject) pairs
-cat("first linear model in other population: regress predicted onto measured expression for all (gene, subject) pairs\n")  
+cat("first linear model in testing population: regress predicted onto measured expression for all (gene, subject) pairs\n")  
 sink(altpop.out.lm.file)
 print(summary(lm(Predicted_Expr ~ Measured_Expr, data = altpop.rnapred)))
 sink()
 
-cat("second linear model in other population: individual regressions for each gene\n")
+cat("second linear model in testing population: individual regressions for each gene\n")
 compute.gene.lm(altpop.rnapred, altpop.out.genelm.file)
+
+# repeat for training population
+# this essentially uses in-sample information so it's a bit fishy
+samepop.predictions = fread(samepop.pred.file)
+colnames(samepop.predictions) = c("Gene", "SubjectID", "Predicted_Expr")
+samepop.rnapred = merge(rnaseq.melted, samepop.predictions, by = c("Gene", "SubjectID"))
+cat("first linear model in training population: regress predicted onto measured expression for all (gene, subject) pairs\n")  
+sink(samepop.out.lm.file)
+print(summary(lm(Predicted_Expr ~ Measured_Expr, data = samepop.rnapred)))
+sink()
+cat("second linear model in training population: individual regressions for each gene\n")
+compute.gene.lm(samepop.rnapred, samepop.out.genelm.file)
 
 # show any warnings
 cat("any warnings?\n")

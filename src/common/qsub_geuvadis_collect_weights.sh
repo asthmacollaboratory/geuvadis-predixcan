@@ -120,12 +120,14 @@ echo "exit status after making prediction,lambda,weights files: ${RETVAL}"
 rm -f ${predictionfile_altpop}
 touch ${predictionfile_altpop}
 echo -e "Gene\tSubjectID\tPrediction_${pop}_into_${altpop}" > ${predictionfile_altpop}
-cat ${resultssubdir}/geuvadis_predictinto_${altpop}_${glmmethod}_ENSG* | grep -F -v "SubjectID" | grep -F "ENS" | sort --temporary-directory ${tmpdir} >> ${predictionfile_altpop}
+#cat ${resultssubdir}/geuvadis_predictinto_${altpop}_${glmmethod}_ENSG* | grep -F -v "SubjectID" | grep -F "ENS" | sort --temporary-directory ${tmpdir} >> ${predictionfile_altpop}
+cat ${resultssubdir}/geuvadis_predictinto_${altpop}_${glmmethod}_ENSG* | grep -F -v "IID" | grep -F "ENS" | sort --temporary-directory ${tmpdir} >> ${predictionfile_altpop}
 
 rm -f ${predictionfile_samepop}
 touch ${predictionfile_samepop}
 echo -e "Gene\tSubjectID\tPrediction_${pop}_into_${pop}" > ${predictionfile_samepop}
-cat ${resultssubdir}/geuvadis_predictinto_${pop}_${glmmethod}_ENSG* | grep -F -v "SubjectID" | grep -F "ENS" | sort --temporary-directory ${tmpdir} >> ${predictionfile_samepop}
+#cat ${resultssubdir}/geuvadis_predictinto_${pop}_${glmmethod}_ENSG* | grep -F -v "SubjectID" | grep -F "ENS" | sort --temporary-directory ${tmpdir} >> ${predictionfile_samepop}
+cat ${resultssubdir}/geuvadis_predictinto_${pop}_${glmmethod}_ENSG* | grep -F -v "IID" | grep -F "ENS" | sort --temporary-directory ${tmpdir} >> ${predictionfile_samepop}
 
 # finally, compile null and genotype heritabilities for all genes
 rm -f ${h2file}

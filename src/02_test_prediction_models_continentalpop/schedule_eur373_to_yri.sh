@@ -35,6 +35,10 @@ predictionfile_altpop=${predictionfile_eur2yri}
 altpop_out_lm_file=${out_lm_file_eur2yri}
 altpop_out_genelm_file=${out_genelm_file_eur2yri}
 
+predictionfile_samepop=${predictionfile_eur2eur}
+samepop_out_lm_file=${out_lm_file_eur2eur}
+samepop_out_genelm_file=${out_genelm_file_eur2eur}
+
 
 # schedule jobs
 source ${BASH_schedule_jobs}

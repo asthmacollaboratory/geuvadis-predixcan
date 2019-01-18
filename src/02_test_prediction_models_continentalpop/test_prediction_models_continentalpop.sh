@@ -31,9 +31,9 @@
 # BASH script settings
 # ==========================================================================================
 
-set -e  ## script will exit on error
-set -u  ## script will exit if it sees an uninitialized variable
-
+set -o errexit # set -e, script will exit on error
+set -o nounset # set -u, script will exit if it sees an uninitialized variable
+#set -o xtrace  # set -x, script will track which command is currently running
 
 # ==========================================================================================
 # script variables
@@ -64,18 +64,18 @@ source ${BASH_define_variables}
 # EUR373 to YRI
 
 source ${BASH_schedule_eur373_to_yri}
-
-# -------------------- #
-# YRI to EUR373
-
-source ${BASH_schedule_yri_to_eur373}
-
-# -------------------- #
-# EUR278 to YRI
-
-source ${BASH_schedule_eur278_to_yri}
-
-# -------------------- #
-# EUR278 to FIN
-
-source ${BASH_schedule_eur278_to_fin}
+#
+## -------------------- #
+## YRI to EUR373
+#
+#source ${BASH_schedule_yri_to_eur373}
+#
+## -------------------- #
+## EUR278 to YRI
+#
+#source ${BASH_schedule_eur278_to_yri}
+#
+## -------------------- #
+## EUR278 to FIN
+#
+#source ${BASH_schedule_eur278_to_fin}

@@ -18,6 +18,7 @@ suppressMessages(library(methods))
 suppressMessages(library(glmnet))
 suppressMessages(library(data.table))
 suppressMessages(library(optparse))
+suppressMessages(library(caret))
 
 # error tracking
 options(show.error.locations = TRUE)
@@ -122,6 +123,9 @@ compute.new.weights = function(){
     # typecast numbers in case R read them as strings
     alpha  = as.numeric(alpha)
     nfolds = as.numeric(nfolds)
+
+    # set random seed
+    set.seed(seed)
 
     # ==========================================================================================
     # Directories & Variables
@@ -244,9 +248,18 @@ compute.new.weights = function(){
                     nlambda = 100
                     lambda  = exp(seq(log(0.01), log(lam.max), length.out=nlambda))
 
+                    # fix cross-validation folds for reproducibility
+                    # note: this makes "nfolds" argument to cv.glmnet redundant
+                    flds    = createFolds(y, k = nfolds, list = TRUE, returnTrain = FALSE)
+                    foldids = rep(1, length(y))
+                    for (i in 1:nfolds) {
+                        foldids[flds[[i]]] = i
+                    }
+
                     # cross-validate!
                     cat(paste0("crossvalidating sample ", held.out.sample.name, "..."))
-                    my.glmnet = cv.glmnet(x=X, y=y, nfolds=nfolds, family = "gaussian", alpha=alpha, keep=TRUE, grouped = FALSE, dfmax=n, pmax=n, lambda.min.ratio = 0.01, nlambda=nlambda)
+                    #my.glmnet = cv.glmnet(x=X, y=y, nfolds=nfolds, family = "gaussian", alpha=alpha, keep=TRUE, grouped = FALSE, dfmax=n, pmax=n, lambda.min.ratio = 0.01, nlambda=nlambda)
+                    my.glmnet = cv.glmnet(x=X, y=y, nfolds=nfolds, family = "gaussian", alpha=alpha, keep=TRUE, grouped = FALSE, dfmax=n, pmax=n, lambda.min.ratio = 0.01, nlambda=nlambda, foldid=foldids)
                     cat(paste0("done at timestamp ", Sys.time(), "\n"))
 
                     # pull info to find best lambda

@@ -40,6 +40,9 @@ altpop_exprfile=${altpop_exprfile}
 altpop_out_lm_file=${altpop_out_lm_file}
 altpop_out_genelm_file=${altpop_out_genelm_file}
 predictionfile=${predictionfile}
+predictionfile_samepop=${predictionfile_samepop}
+samepop_out_lm_file=${samepop_out_lm_file}
+samepop_out_genelm_file=${samepop_out_genelm_file}
 exprfile=${exprfile}
 out_lm_file=${out_lm_file}
 out_genelm_file=${out_genelm_file}
@@ -72,7 +75,10 @@ $Rscript $R_postprocess_weights \
     --test-pop-prediction-file ${predictionfile_altpop} \
     --test-pop-expression-file ${altpop_exprfile} \
     --test-pop-out-lm-file ${altpop_out_lm_file} \
-    --test-pop-out-genelm-file ${altpop_out_genelm_file}
+    --test-pop-out-genelm-file ${altpop_out_genelm_file} \
+    --train-pop-prediction-file ${predictionfile_samepop} \
+    --train-pop-out-lm-file ${samepop_out_lm_file} \
+    --train-pop-out-genelm-file ${samepop_out_genelm_file}
 
 # query return value of previous command
 RETVAL=$?

@@ -164,14 +164,20 @@ out_genelm_file_eur278="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_genelm
 out_genelm_file_yri="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_genelm_predvmeas_results.txt"
 
 out_lm_file_eur2yri="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictinto_yri89_lm_predvmeas_results.txt"
+out_lm_file_eur2eur="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictinto_eur373_lm_predvmeas_results.txt"
+out_lm_file_eur278toeur278="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_eur278_lm_predvmeas_results.txt"
 out_lm_file_eur278tofin="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_fin95_lm_predvmeas_results.txt"
 out_lm_file_eur278toyri="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_yri89_lm_predvmeas_results.txt"
 out_lm_file_yri2eur="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictinto_eur373_lm_predvmeas_results.txt"
+out_lm_file_yri2yri="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictinto_yri89_lm_predvmeas_results.txt"
 
 out_genelm_file_eur2yri="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictinto_yri89_genelm_predvmeas_results.txt"
+out_genelm_file_eur2eur="${resultsdir_eur}/geuvadis_${glmmethod}_eur373_predictinto_eur373_genelm_predvmeas_results.txt"
+out_genelm_file_eur278toeur278="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_eur278_genelm_predvmeas_results.txt"
 out_genelm_file_eur278toyri="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_yri89_genelm_predvmeas_results.txt"
 out_genelm_file_eur278tofin="${resultsdir_eur278}/geuvadis_${glmmethod}_eur278_predictinto_fin95_genelm_predvmeas_results.txt"
 out_genelm_file_yri2eur="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictinto_eur373_genelm_predvmeas_results.txt"
+out_genelm_file_yri2yri="${resultsdir_yri}/geuvadis_${glmmethod}_yri89_predictinto_yri89_genelm_predvmeas_results.txt"
 
 h2file_eur="${resultsdir_eur}/geuvadis_h2_eur373.txt"
 h2file_null_eur="${resultsdir_eur}/geuvadis_h2_null_eur373.txt"
