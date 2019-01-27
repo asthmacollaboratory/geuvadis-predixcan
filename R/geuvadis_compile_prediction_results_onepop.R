@@ -87,52 +87,34 @@ library(data.table)
 library(dplyr)
 library(purrr)
 library(broom)
+library(stringr)
 
 # =======================================================================================
 # subroutines
 # =======================================================================================
 
-# subroutine to compute coefficient of determination from linear model
-lmtest = function(x, lm.formula) {
-    x.nona = na.omit(x)
-    n = dim(x.nona)[1]
-    if ( n < 1 ) {
-        return(data.table(Gene = x$Gene, R2 = NA, N = 0))
-    }
-    my.lm = lm(formula(lm.formula), data = x.nona, na.action = na.omit)
-    return(data.table(Gene = x$Gene, R2 = summary(my.lm)$r.squared, N = n))
-}
-
 # subroutine for extracting both Spearman rho, p-value from correlation test
-cortest = function(x, cor.formula) {
-    x.nona = na.omit(x)
-    n = dim(x.nona)[1]
-    if ( n < 1 ) {
-        return(data.table(Gene = x$Gene, Correlation = NA, Corr.p.value = NA))
-    }
-    my.cortest = cor.test(formula(cor.formula), x.nona, method = "spearman", na.action = na.omit)
-    return(data.table(Gene = x.nona$Gene, Correlation = my.cortest$estimate, Corr.p.value = my.cortest$p.value))
+cortest = function(x) {
+    my.cortest =  cor.test(~ Predicted_Expr + Measured_Expr, data = x, method = "spearman")
+    return(data.table(Gene = x$Gene, Correlation = my.cortest$estimate, Corr.p.value = my.cortest$p.value))
 }
 
-compute.r2 = function(x, lm.formula, from.pop, to.pop){
-    r2s = x %>% 
-        group_by(Gene, Pop) %>% 
-        do(lmtest(., lm.formula)) %>% 
-        as.data.table %>% 
-        unique
-    colnames(r2s) = c("Pop", "Gene", paste0("R2_", from.pop, "_to_", to.pop), paste0("Num_Pred_", from.pop, "_to_", to.pop))
-    return(r2s)
+compute.r2.corr.onegene = function(x){
+    the.fit = summary(lm(Predicted_Expr ~ Measured_Expr, data = x)) 
+    my.cortest =  cor.test(~ Predicted_Expr + Measured_Expr, data = x, method = "spearman")
+    my.output = data.frame("Correlation" = my.cortest$estimate, "Corr_pval" = my.cortest$p.value, "R2" = the.fit$r.squared, "R2_pval" = the.fit$coefficients[2,4])
+    return(my.output)
 }
 
-compute.corr = function(x, corr.formula, from.pop, to.pop){
-    corrs = x %>% 
-        group_by(Gene, Pop) %>% 
-        do(cortest(., corr.formula)) %>% # use previous subroutine to perform correlation test and extract three columns (gene, correlation, p-value)
-        as.data.table %>% # cast as data.table to purge duplicate rows
-        unique # need this because inelegant subroutine prints repeated rows, 1 per sample instead of 1 per gene group
-    colnames(corrs) = c("Pop", "Gene" , paste0("Corr_", from.pop, "_to_", to.pop), paste0("Corr_pval_", from.pop, "_to_", to.pop))
-    return(corrs)
+compute.r2.corr = function(df){
+    new.df = df %>% 
+        na.omit %>% 
+        dplyr::group_by(Gene, Test_Pop) %>% 
+        do(compute.r2.corr.onegene(.)) %>% 
+        as.data.table
+    return(new.df)
 }
+
 
 # ========================================================================================
 # load files 
@@ -146,7 +128,7 @@ altpop.pred = fread(altpop.pred.path)
 
 # key.file structure; no header, 1st col Subject ID, 2nd Pop
 key.file = fread(key.file.path, header = FALSE)
-colnames(key.file) = c("SubjectID", "Pop") 
+colnames(key.file) = c("SubjectID", "Test_Pop") 
 
 # melt rna files since they are arranged as matrices
 pop.rna.melt    = melt(pop.rna, id.vars = "Gene", variable.name = "SubjectID")
@@ -174,61 +156,39 @@ altpop.rnapred = merge(altpop.rna.melt, altpop.pred, by = c("Gene", "SubjectID")
 rnapred = rbind(pop.rnapred, altpop.rnapred)
 
 # add population code
-# result is a data.frame, recast it to data.table
-#pop.rnapred    = as.data.table(left_join(pop.rnapred, key.file, by = "SubjectID"))
-#altpop.rnapred = as.data.table(left_join(altpop.rnapred, key.file, by = "SubjectID"))
-
-# add population code
 # use a right_join to ensure that we only save predictions in crosspop scheme
 # this discards the samples not in the 89 selected for each pop
 # result is a data.frame, so recast it to data.table
 rnapred = as.data.table(right_join(rnapred, key.file, by = "SubjectID"))
+rnapred$Train_Pop = str_to_upper(pop) 
 
-# compute R2s
-lm.formula       = "Predicted_Expr ~ Measured_Expr"
-#pop.r2s.topop    = compute.r2(pop.rnapred, lm.formula, pop, pop)
-#pop.r2s.toaltpop = compute.r2(altpop.rnapred, lm.formula, pop, altpop)
-r2s.allpop = compute.r2(rnapred, lm.formula, pop, "allpop")
+# recover memory
+pop.rna         = FALSE
+pop.pred        = FALSE
+altpop.rna      = FALSE
+altpop.pred     = FALSE
+pop.rna.melt    = FALSE
+altpop.rna.melt = FALSE
+pop.pred        = FALSE
+altpop.pred     = FALSE
+pop.rnapred     = FALSE
+altpop.rnapred  = FALSE
+pop.rna.melt    = FALSE
+gc()
 
-# compute correlations
-cor.formula        = "~ Predicted_Expr + Measured_Expr"
-#pop.corrs.topop    = compute.corr(pop.rnapred, cor.formula, pop, pop)
-#pop.corrs.toaltpop = compute.corr(altpop.rnapred, cor.formula, pop, altpop)
-corrs.allpop = compute.corr(rnapred, cor.formula, pop, "allpop")
 
-# merge results
-#pop.topop.results    = merge(pop.r2s.topop, pop.corrs.topop, by = c("Gene"))
-#pop.toaltpop.results = merge(pop.r2s.toaltpop, pop.corrs.toaltpop, by = c("Gene"))
-allpop.results = merge(r2s.allpop, corrs.allpop, by = c("Gene", "Pop"))
+allpop.results = compute.r2.corr(rnapred) 
+allpop.results$Train_Pop = str_to_upper(pop)
 
 # save results
-#pop.r2.path = paste0(output.pfx, ".", pop, ".predictinto.", pop, ".R2.txt")
-#altpop.r2.path = paste0(output.pfx, ".", pop, ".predictinto.", altpop, ".R2.txt")
-#fwrite(x = pop.r2s.topop, file = pop.r2.path, quote = FALSE, na = "NA", sep = "\t")
-#fwrite(x = pop.r2s.toaltpop, file = altpop.r2.path, quote = FALSE, na = "NA", sep = "\t")
-#
-#pop.corr.path = paste0(output.pfx, ".", pop, ".predictinto.", pop, ".corr.txt")
-#altpop.corr.path = paste0(output.pfx, ".", pop, ".predictinto.", altpop, ".corr.txt")
-#fwrite(x = pop.corrs.topop, file = pop.corr.path, quote = FALSE, na = "NA", sep = "\t")
-#fwrite(x = pop.corrs.toaltpop, file = altpop.corr.path, quote = FALSE, na = "NA", sep = "\t")
-
-#pop.results.path = paste0(output.pfx, ".", pop, ".predictinto.", pop, ".results.txt")
-#altpop.results.path = paste0(output.pfx, ".", pop, ".predictinto.", altpop, ".results.txt")
-#fwrite(x = pop.topop.results, file = pop.results.path, quote = FALSE, na = "NA", sep = "\t")
-#fwrite(x = pop.toaltpop.results, file = altpop.results.path, quote = FALSE, na = "NA", sep = "\t")
-
 allpop.results.path = paste0(output.pfx, ".", pop, ".predictinto.allpop.results.txt")
 fwrite(x = allpop.results, file = allpop.results.path, quote = FALSE, na = "NA", sep = "\t")
 
-# proceed to compute summaries of these results
-# start by renaming columns for convenience
-colnames(allpop.results) = c("Gene", "Pop", "R2", "Num_Pred", "Corr", "Corr_pval")
-
-# get the predicted genes in common across all pops
+# want to compute pop-wise summaries of these results
+# first get the predicted genes in common across all pops
 genes.in.common = allpop.results %>%
-    group_by(Gene) %>%
-    select(Gene) %>%
-    mutate(n = n()) %>%
+    na.omit %>%
+    count(Gene) %>%
     dplyr::filter(., n == 5) %>% ### TODO: determine number of pops programmatically? currently set to 5
     distinct %>%
     select(Gene) %>%
@@ -242,11 +202,11 @@ fwrite(x = genes.in.common, file = commongenes.path, quote = FALSE, sep = "\t", 
 # first computes mean R2 for each gene in each pop
 # then reduces across genes to get average R2 for pop
 mean.r2 = allpop.results %>%
-    select(Gene, Pop, R2) %>%
+    select(Gene, Train_Pop, Test_Pop, R2) %>%
     dplyr::filter(., Gene %in% genes.in.common$Gene) %>%
-    group_by(Gene, Pop) %>%
+    group_by(Gene, Test_Pop) %>%
     summarize(R2_mean = mean(R2, na.rm = TRUE)) %>%
-    group_by(Pop) %>%
+    group_by(Test_Pop) %>%
     summarize(Mean = mean(R2_mean, na.rm = TRUE),
               Std_Err = sd(R2_mean, na.rm = TRUE),
               Num_Genes = n()
@@ -254,8 +214,12 @@ mean.r2 = allpop.results %>%
     as.data.table
 
 # rename columns to clarify the training population
-colnames(mean.r2)[2] = paste0("R2_mean_from_", pop) 
-colnames(mean.r2)[3] = paste0("R2_stderr_from_", pop) 
+colnames(mean.r2)[2] = "R2_Mean" 
+colnames(mean.r2)[3] = "R2_SD"
+mean.r2$Train_Pop = str_to_upper(pop)
+
+# reorder columns
+mean.r2 = mean.r2 %>% select(Train_Pop, Test_Pop, R2_Mean, R2_SD, Num_Genes)
 
 # save to file
 allpop.summary.path = paste0(output.pfx, ".", pop, ".predictinto.allpop.summary.txt")
@@ -263,30 +227,30 @@ fwrite(x = mean.r2, file = allpop.summary.path, quote = FALSE, na = "NA", sep = 
 
 # repeat search of genes in common across pops
 # this time purge those with nonpositive correlation
-genes.in.common = allpop.results %>%
-    group_by(Gene) %>%
-    subset(Corr > 0) %>% # <-- operative difference
-    select(Gene) %>%
-    mutate(n = n()) %>%
+genes.in.common.poscorr = allpop.results %>%
+    dplyr::filter(., Correlation > 0) %>% # <-- operative difference
+    na.omit %>%
+    count(Gene) %>%
     dplyr::filter(., n == 5) %>%
     distinct %>%
     select(Gene) %>%
     as.data.table
 
 # save these genes to file
-commongenes.path = paste0(output.pfx, ".", pop, ".commongenes.poscor.txt")
-fwrite(x = genes.in.common, file = commongenes.path, quote = FALSE, sep = "\t", col.names = FALSE)
+commongenes.path.poscorr = paste0(output.pfx, ".", pop, ".commongenes.poscorr.txt")
+fwrite(x = genes.in.common.poscorr, file = commongenes.path.poscorr, quote = FALSE, sep = "\t", col.names = FALSE)
 
 # get another mean R2
 # this one discards negative correlations
 # produces more realistic R2s but discards a lot of genes
-mean.r2 = allpop.results %>%
-    select(Gene, Pop, R2) %>%
+mean.r2.poscorr = allpop.results %>%
+    dplyr::filter(., Correlation > 0) %>%
+    select(Gene, Test_Pop, R2) %>%
     group_by(Gene) %>%
-    dplyr::filter(., Gene %in% genes.in.common$Gene) %>%
-    group_by(Gene, Pop) %>%
+    dplyr::filter(., Gene %in% genes.in.common.poscorr$Gene) %>%
+    group_by(Gene, Test_Pop) %>%
     summarize(R2_mean = mean(R2, na.rm = TRUE)) %>%
-    group_by(Pop) %>%
+    group_by(Test_Pop) %>%
     summarize(Mean = mean(R2_mean, na.rm = TRUE),
               Std_Err = sd(R2_mean, na.rm = TRUE),
               Num_Genes = n()
@@ -294,9 +258,13 @@ mean.r2 = allpop.results %>%
     as.data.table
 
 # rename columns to clarify the training population
-colnames(mean.r2)[2] = paste0("R2_mean_from_", pop) 
-colnames(mean.r2)[3] = paste0("R2_stderr_from_", pop) 
+colnames(mean.r2.poscorr)[2] = "R2_Mean" 
+colnames(mean.r2.poscorr)[3] = "R2_SD"
+mean.r2.poscorr$Train_Pop = str_to_upper(pop)
+
+# reorder columns
+mean.r2.poscorr = mean.r2.poscorr %>% select(Train_Pop, Test_Pop, R2_Mean, R2_SD, Num_Genes)
 
 # save to file
-allpop.summary.path = paste0(output.pfx, ".", pop, ".predictinto.allpop.summary.poscorr.txt")
-fwrite(x = mean.r2, file = allpop.summary.path, quote = FALSE, na = "NA", sep = "\t")
+allpop.summary.path.poscorr = paste0(output.pfx, ".", pop, ".predictinto.allpop.summary.poscorr.txt")
+fwrite(x = mean.r2.poscorr, file = allpop.summary.path.poscorr, quote = FALSE, na = "NA", sep = "\t")
