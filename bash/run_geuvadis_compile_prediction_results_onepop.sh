@@ -14,10 +14,10 @@ popkey="$HOME/gala_sage/rnaseq/geuvadis/crosspop/geuvadis.crosspop.sample.pop.ke
 
 RSCRIPT="$HOME/bin/Rscript"
 #R_compile_results="$HOME/gala_sage/code/geuvadis_compile_prediction_results_onepop.R"
-R_compile_results="/netapp/home/kkeys/Git/geuvadis-predixcan/R/geuvadis_compile_prediction_results_onepop.R"
+R_compile_results="${HOME}/Git/geuvadis-predixcan/R/geuvadis_compile_prediction_results_onepop.R"
 
-#for i in $(seq 0 4); do
-for i in $(seq 4 4); do
+for i in $(seq 0 4); do
+#for i in $(seq 4 4); do
 
     pop="${pops[$i]}"
     altpop="${altpops[$i]}"
