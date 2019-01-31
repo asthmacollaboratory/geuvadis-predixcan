@@ -10,3 +10,14 @@
 ### Directories ###
 ## ignore analysis directory, results, etc.:
 analysis/
+
+### Results ###
+
+# ignore images
+*.png
+*.pdf
+*.svg
+*.jpg
+
+# ignore results
+*.Rdata
