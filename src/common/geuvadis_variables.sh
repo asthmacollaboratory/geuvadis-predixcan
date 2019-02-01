@@ -250,4 +250,4 @@ if [[ ! -d "${logdir}" ]]; then mkdir -p ${logdir}; fi
 nGenes=$(wc -l ${genelist} | cut -f 1 -d " ")
 
 # uncomment next line for testing and debugging the pipeline
-nGenes=10
+#nGenes=10

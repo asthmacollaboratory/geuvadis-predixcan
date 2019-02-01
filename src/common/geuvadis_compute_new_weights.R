@@ -161,6 +161,17 @@ compute.new.weights = function(){
     n = dim(ty)[1]
     y.pred = matrix(NA,n,1)
 
+    # ensure that nfolds <= length(y) - 1
+    # if not, then adjust and notify accordingly
+    cat("Ensuring that nfolds <= length(y) - 1...\n")
+    if ( nfolds <= n - 1) {
+        cat("...looks good.\n")
+    } else {
+        cat("nfolds = ", nfolds, " but length(y) - 1 = ", n - 1, ", adjusting accordingly...\n")
+        nfolds = n - 1
+        cat("now nfolds = ", nfolds, "\n")
+    }
+
     # prepare the gene output file that will contain the prediction and lambda for each held-out sample
     # put a header on it for bookkeeping
     # the pipeline will later discard the header when forming a unified prediction file, one line per prediction

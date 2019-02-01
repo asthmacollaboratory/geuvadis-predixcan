@@ -59,8 +59,8 @@ popsizes=("92" "93" "96" "95" "89")
 h_rt="23:59:59"
 
 # loop over pops
-#for i in $(seq 0 4); do
-for i in $(seq 0 0); do
+for i in $(seq 0 4); do
+#for i in $(seq 0 0); do
 
     # set variables for current pop
     # train in "pop", test in "notpop"
@@ -97,6 +97,8 @@ for i in $(seq 0 0); do
     lambdafile="${resultsdir}/geuvadis_${glmmethod}_${pop}_lambdas.txt"
     weightsfile="${resultsdir}/geuvadis_${glmmethod}_${pop}_weights.txt"
     predictionfile_samepop="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictinto_${pop}.txt"
+    samepop_out_lm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictinto_${pop}_lm_predvmeas_results.txt"
+    samepop_out_genelm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_predictinto_${pop}_genelm_predvmeas_results.txt"
     num_pred_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_numpred.txt"
     nsamples=${subsample_size}
     out_lm_file="${resultsdir}/geuvadis_${glmmethod}_${pop}_lm_predvmeas_results.txt"
