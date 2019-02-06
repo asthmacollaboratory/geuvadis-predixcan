@@ -95,13 +95,6 @@ option_list = list(
         metavar = "character"
     ),
     make_option(
-        c("-i", "--output-results"),
-        type    = "character",
-        default = NULL,
-        help    = "Path to compiled data table of prediction results",
-        metavar = "character"
-    ),
-    make_option(
         c("-j", "--output-r2"),
         type    = "character",
         default = NULL,
@@ -123,24 +116,10 @@ option_list = list(
         metavar = "character"
     ),
     make_option(
-        c("-m", "--EUR-RNA"),
+        c("-o", "--poscorr"),
         type    = "character",
         default = NULL,
-        help    = "Matrix of gene expression measures for Europeans",
-        metavar = "character"
-    ),
-    make_option(
-        c("-n", "--AFR-RNA"),
-        type    = "character",
-        default = NULL,
-        help    = "Matrix of gene expression measures for Yoruba",
-        metavar = "character"
-    ),
-    make_option(
-        c("-o", "--common-genes"),
-        type    = "character",
-        default = NULL,
-        help    = "Path to save list of genes in common to all train-test scenarios",
+        help    = "Path to save list of genes in each train-test scenario with positive correlation between data and prediction",
         metavar = "character"
     ),
     make_option(
@@ -164,18 +143,13 @@ eur278.to.eur278.path = opt$EUR278_to_EUR278
 eur278.to.fin.path    = opt$EUR278_to_FIN
 eur278.to.afr.path    = opt$EUR278_to_AFR
 afr.to.eur373.path    = opt$AFR_to_EUR373
-#afr.to.eur278.path    = opt$
-#afr.to.fin.path       = opt$
 eur278.ids.path       = opt$EUR278_ids
 fin.ids.path          = opt$FIN_ids
 afr.to.afr.path       = opt$AFR_to_AFR
 output.path.predictions = opt$output_predictions
-output.path.results   = opt$output_results
 output.path.r2        = opt$output_r2
-eur.rna.path          = opt$EUR_RNA
-afr.rna.path          = opt$AFR_RNA
-common.genes.path     = opt$common_genes
-commongenes.poscorr.path = opt$common_genes_poscorr
+output.path.r2.poscorr = opt$poscorr
+output.path.r2.poscorr.commongenes = opt$common_genes_poscorr
 
 # load data frames
 eur373.to.eur373 = fread(eur373.to.eur373.path, header = TRUE)
@@ -184,111 +158,77 @@ eur278.to.eur278 = fread(eur278.to.eur278.path, header = TRUE)
 eur278.to.fin    = fread(eur278.to.fin.path, header = TRUE)
 eur278.to.afr    = fread(eur278.to.afr.path, header = TRUE)
 afr.to.eur373    = fread(afr.to.eur373.path, header = TRUE)
-#afr.to.eur278    = fread(afr.to.eur278.path, header = TRUE)
-#afr.to.fin       = fread(afr.to.fin.path, header = TRUE)
 afr.to.afr       = fread(afr.to.afr.path, header = TRUE)
 
 eur278.ids = fread(eur278.ids.path, header = FALSE)
 fin.ids    = fread(fin.ids.path , header = FALSE) 
-
-afr.rna = fread(afr.rna.path, header = TRUE)
-eur.rna = fread(eur.rna.path, header = TRUE)
 
 # subset eur278, fin from AFR predictions
 afr.to.eur278 = afr.to.eur373 %>% dplyr::filter(SubjectID %in% eur278.ids[[1]]) %>% as.data.table 
 afr.to.fin    = afr.to.eur373 %>% dplyr::filter(SubjectID %in% fin.ids[[1]]) %>% as.data.table 
 
 # make char vectors of train/test orders
-#pops = c("EUR373_to_EUR373", "EUR373_to_AFR", "EUR278_to_EUR278", "EUR278_to_FIN", "EUR278_to_AFR", "AFR_to_EUR373", "AFR_to_EUR278", "AFR_to_FIN", "AFR_to_AFR")
 train.pops = c("EUR373", "EUR373", "EUR278", "EUR278", "EUR278", "AFR", "AFR", "AFR", "AFR")
-test.pops = c("EUR373", "AFR", "EUR278", "FIN", "AFR", "EUR373", "EUR278", "FIN", "AFR")
+test.pops  = c("EUR373", "AFR", "EUR278", "FIN", "AFR", "EUR373", "EUR278", "FIN", "AFR")
 
 # make list of data frames in same order
 datatables = list(eur373.to.eur373, eur373.to.afr, eur278.to.eur278, eur278.to.fin, eur278.to.afr, afr.to.eur373, afr.to.eur278, afr.to.fin, afr.to.afr)
 
 # add pop labels
 n = length(train.pops)
-for (i in 1:n) { 
-    cat("parsing table with train.pop = ", train.pops[i], " and test.pop = ", test.pops[i], "\n")
-    #datatables[[i]]$Train_Test = pops[i]
-    if ( ncol(datatables[[i]]) != 3) {
-        datatables[[i]] = melt(datatables[[i]], id.vars = "Gene", variable.name = "SubjectID", value.name = "Predicted_Expr")
-    } else {
-        colnames(datatables[[i]]) = c("Gene", "SubjectID", "Predicted_Expr")
-    }
+for (i in 1:n) {
     datatables[[i]]$Train_Pop = train.pops[i]
-    datatables[[i]]$Test_Pop  = test.pops[i]
-    #datatables[[i]]$Spearman.rho = as.numeric(datatables[[i]]$Spearman.rho)
-    #setkey(datatables[[i]], Gene, P.value, R2, Spearman.rho, Train_Test) 
-    #setkey(datatables[[i]], Gene, P.value, R2, Spearman.rho, Train_Pop, Test_Pop) 
-    setkey(datatables[[i]], Gene, SubjectID, Predicted_Expr, Train_Pop, Test_Pop) 
+    datatables[[i]]$Test_Pop = test.pops[i]
+    datatables[[i]]$Spearman.rho = as.numeric(datatables[[i]]$Spearman.rho)
+    setkey(datatables[[i]], Gene, P.value, R2, Spearman.rho, Train_Pop, Test_Pop)
 }
 
 # merge data frames together and save to file
-geuvadis.predictions = Reduce(function(x,y) merge(x,y,all=TRUE), datatables)
+geuvadis.predictions = Reduce(function(x,y) {merge(x, y, all = TRUE)}, datatables)
 fwrite(x = geuvadis.predictions, file = output.path.predictions, row.names = FALSE, quote = FALSE, col.names = TRUE, sep = "\t") 
 
-# prepare data frame for measured gene expression
-afr.rna = melt(afr.rna, id.vars = "Gene", variable.name = "SubjectID", value.name = "Measured_Expr") 
-eur.rna = melt(eur.rna, id.vars = "Gene", variable.name = "SubjectID", value.name = "Measured_Expr") 
-rna = rbindlist(list(afr.rna, eur.rna))
-
 # get genes with results in all populations
-transcripts = geuvadis.predictions %>%
-    na.omit %>%
-    count(Gene, Train_Pop, Test_Pop) %>%
-    select(Gene) %>%
-    count(Gene) %>%
-    dplyr::filter(n == n) %>%
+transcripts = geuvadis.results %>%
+    group_by(Gene) %>%
+    summarize(count = n()) %>%
+    dplyr::filter(count == n) %>%
     select(Gene) %>%
     as.data.table
 
-# save common transcript IDs to file
-fwrite(x = transcripts, file = common.genes.path, row.names = FALSE, quote = FALSE, col.names = FALSE, sep = "\t")
-
-# merge predictions + measurements
-geuvadis.rnapred = merge(geuvadis.predictions, rna, by = c("Gene", "SubjectID"))
-
-# first compute correlations
-geuvadis.results = compute.r2.corr(geuvadis.rnapred)
-
-# use "transcripts" as a filtering variable
-#r2 = geuvadis.results %>%
-#    dplyr::filter(
-#        Gene %in% transcripts[[1]] & 
-#        Spearman.rho > 0
-#    ) %>%
-#    group_by(Train_Test) %>%
-#    summarize(r2 = mean(R2, na.rm = T), corr = mean(Spearman.rho, na.rm = T), ntranscripts = length(transcripts[[1]])) %>%
-#    as.data.table
-#
-#r2 = geuvadis.results %>%
-#    dplyr::filter(
-#        Gene %in% transcripts[[1]] & 
-#        Spearman.rho > 0
-#    ) %>%
-#    group_by(Train_Pop, Test_Pop) %>%
-#    summarize(r2 = mean(R2, na.rm = T), corr = mean(Spearman.rho, na.rm = T), ntranscripts = length(transcripts[[1]])) %>%
-#    as.data.table
-
-# get transcripts with positive correlation
-transcripts.poscorr = geuvadis.results %>%
-    na.omit %>%
-    dplyr::filter(Correlation > 0) %>%
-    count(Gene, Train_Pop, Test_Pop) %>%
-    select(Gene) %>%
-    count(Gene) %>%
-    dplyr::filter(n == n) %>%
-    select(Gene) %>%
-    as.data.table
-
-# save list of transcripts to file
-fwrite(x = transcripts.poscorr, file = common.genes.poscorr.path, row.names = FALSE, quote = FALSE, col.names = FALSE, sep = "\t")
-
+# use "transcripts" as a filtering variable to parse R2
 r2 = geuvadis.results %>%
+    dplyr::filter(Gene %in% transcripts[[1]]) %>%
+    group_by(Train_Pop, Test_Pop) %>%
+    summarize(r2 = mean(R2, na.rm = T), corr = mean(Spearman.rho, na.rm = T), Transcripts = n()) %>%
+    as.data.table
+
+# save filtered R2 to file
+fwrite(x = r2, file = output.path.r2, row.names = FALSE, quote = FALSE, col.names = TRUE, sep = "\t") 
+
+# create second filter against those transcripts, now only pulling positive correlations 
+r2.poscorr = geuvadis.results %>%
+    dplyr::filter(Gene %in% transcripts[[1]] & Spearman.rho > 0) %>%
+    group_by(Train_Pop, Test_Pop) %>%
+    summarize(r2 = mean(R2, na.rm = TRUE), corr = mean(Spearman.rho, na.rm = TRUE), Transcripts = n()) %>%
+    as.data.table
+
+# save refiltered r2 to file
+fwrite(x = r2.poscorr, file = output.path.r2.poscorr, row.names = FALSE, quote = FALSE, col.names = TRUE, sep = "\t") 
+
+# get genes that have a positive correlation in EACH population
+transcripts.poscorr = geuvadis.results %>%
+    dplyr::filter(Spearman.rho > 0) %>%
+    group_by(Gene) %>%
+    summarize(count = n()) %>%
+    dplyr::filter(count == n) %>%
+    select(Gene) %>%
+    as.data.table
+
+r2.poscorr.commongenes = geuvadis.results %>%
     dplyr::filter(Gene %in% transcripts.poscorr[[1]]) %>%
     group_by(Train_Pop, Test_Pop) %>%
-    summarize(r2 = mean(R2, na.rm = TRUE), corr = mean(Spearman.rho, na.rm = TRUE), ntranscripts = length(transcripts[[1]])) %>%
+    summarize(r2 = mean(R2, na.rm = TRUE), corr = mean(Spearman.rho, na.rm = TRUE), Transcripts = n()) %>%
     as.data.table
 
-fwrite(x = r2, file = output.path.r2, row.names = FALSE, quote = FALSE, col.names = TRUE, sep = "\t") 
+# save this last list to file
+fwrite(x = r2.poscorr.commongenes, file = output.path.r2.poscorr.commongenes, row.names = FALSE, quote = FALSE, col.names = TRUE, sep = "\t") 

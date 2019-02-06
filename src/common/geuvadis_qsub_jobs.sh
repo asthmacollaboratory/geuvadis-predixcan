@@ -17,9 +17,9 @@
 # ==============================================================================================================================
 
 # job names
-build_models="glmnet.${glmmethod}.${pop}"
-collect_weights="glmnet.${glmmethod}.collect.weights.${pop}"
-postprocess_results="glmnet.${glmmethod}.postprocess.${pop}"
+build_models="glmnet.${glmmethod}.${pop}.to.${altpop}"
+collect_weights="glmnet.${glmmethod}.collect.weights.${pop}.to.${altpop}"
+postprocess_results="glmnet.${glmmethod}.postprocess.${pop}.to.${altpop}"
 
 # ==============================================================================================================================
 # 1. compute new weights from a training set of genotypes and gene expression measures
