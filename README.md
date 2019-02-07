@@ -7,3 +7,5 @@ Per protocol from [Gamazon _et al._ (2015)](https://www.ncbi.nlm.nih.gov/pubmed/
 
 ## Steps
 1. Download and parse GEUVADIS data ([docs](./src/01_download_parse_data/README.md))
+2. Train and test prediction models using continental populations ([docs](./src/02_test_prediction_models_continentalpop/README.md))
+3. Train and test prediction models using the five constituent GEUVADIS populations ([docs](./src/03_test_prediction_models_crosspop/README.md))

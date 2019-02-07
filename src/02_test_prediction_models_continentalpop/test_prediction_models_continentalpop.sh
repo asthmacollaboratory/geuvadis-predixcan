@@ -142,4 +142,3 @@ qsub -N ${compile_results} \
     -l mem_free=${memory_limit} \
     -l h_rt=${h_rt} \
     ${BASH_compile_results_continentalpop}
-
